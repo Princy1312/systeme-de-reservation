@@ -36,10 +36,10 @@ const resourceSchema = Joi.object({
     'any.required': 'Le nom est requis',
   }),
   type: Joi.string()
-    .valid('salle_reunion', 'terrain_sport', 'coworking', 'coiffeur')
+    .valid('salle_reunion', 'terrain_sport', 'coworking', 'coiffeur', 'hotel')
     .required()
     .messages({
-      'any.only': 'Type invalide. Valeurs acceptées : salle_reunion, terrain_sport, coworking, coiffeur',
+      'any.only': 'Type invalide. Valeurs acceptées : salle_reunion, terrain_sport, coworking, coiffeur , hotel',
       'any.required': 'Le type est requis',
     }),
   capacity: Joi.number().integer().min(1).optional(),

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administration — RÉSERV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <!-- AUTH -->
+    <div id="auth-screen" class="auth-screen">
+      <div class="auth-left">
+        <div class="auth-brand">
+          <span class="brand-mark">R</span
+          ><span class="brand-name">RÉSERV</span>
+        </div>
+        <div class="auth-tagline">
+          <p>Administration</p>
+          <p>Panneau de contrôle</p>
+        </div>
+        <div class="auth-grid-deco"></div>
+      </div>
+      <div class="auth-right">
+        <div class="auth-form-container">
+          <div
+            class="form-header"
+            style="text-align: center; margin-bottom: 30px"
+          >
+            <h2
+              style="
+                font-family: var(--font-display);
+                font-size: 1.75rem;
+                color: var(--white);
+                margin-bottom: 8px;
+              "
+            >
+              Administration
+            </h2>
+            <p style="color: var(--gray-400); font-size: 0.9rem">
+              Connectez-vous à votre compte admin
+            </p>
+          </div>
+          <form id="login-form" class="auth-form active">
+            <div class="field-group">
+              <label>Email</label
+              ><input
+                type="email"
+                id="login-email"
+                placeholder="vous@exemple.com"
+                autocomplete="email"
+              />
+            </div>
+            <div class="field-group">
+              <label>Mot de passe</label
+              ><input
+                type="password"
+                id="login-password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+              />
+            </div>
+            <div id="login-error" class="form-error hidden"></div>
+            <button type="submit" class="btn-primary" style="width: 100%">
+              <span>Se connecter</span
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+            <div style="text-align: center; margin-top: 20px">
+              <a
+                href="index.html"
+                style="
+                  color: var(--gray-400);
+                  font-size: 0.85rem;
+                  text-decoration: none;
+                  transition: color 0.2s;
+                "
+                >&larr; Retour au site</a
+              >
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN APP -->
+    <div id="app-screen" class="app-screen hidden">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <span class="brand-mark">R</span
+          ><span class="brand-name">RÉSERV</span>
+        </div>
+        <div class="admin-badge">ADMIN</div>
+        <nav class="sidebar-nav">
+          <button class="nav-item active" data-view="dashboard">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            <span>Dashboard</span>
+          </button>
+          <button class="nav-item" data-view="resources">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span>Ressources</span>
+          </button>
+          <button class="nav-item" data-view="reservations">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            <span>Réservations</span>
+          </button>
+          <button class="nav-item" data-view="users">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+            </svg>
+            <span>Utilisateurs</span>
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <button class="user-chip" id="open-profile-btn">
+            <div class="user-avatar" id="sidebar-avatar">A</div>
+            <div class="user-info">
+              <span id="sidebar-username">Admin</span>
+              <span id="sidebar-role" class="user-role">administrateur</span>
+            </div>
+          </button>
+          <div class="nav-row">
+            <button class="btn-logout" id="logout-btn" title="Déconnexion">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+            <a href="index.html" class="btn-site" title="Aller au site">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path
+                  d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"
+                />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <!-- DASHBOARD -->
+        <section id="view-dashboard" class="view active">
+          <header class="page-header">
+            <div>
+              <h1>Dashboard</h1>
+              <p class="page-subtitle">Vue d'ensemble du système</p>
+            </div>
+            <div class="header-right">
+              <div class="header-date" id="header-date"></div>
+              <div style="position: relative">
+                <button
+                  class="notification-btn"
+                  id="notification-btn"
+                  title="Notifications"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 01-3.46 0" />
+                  </svg>
+                  <span
+                    class="notification-badge hidden"
+                    id="notification-badge"
+                    >0</span
+                  >
+                </button>
+                <div
+                  class="notification-dropdown hidden"
+                  id="notification-dropdown"
+                >
+                  <div class="notification-header">
+                    <span>Notifications</span>
+                    <button id="clear-notifications">Tout effacer</button>
+                  </div>
+                  <div class="notification-list" id="notification-list"></div>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                </svg>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Utilisateurs</span
+                ><span class="stat-value" id="stat-users">—</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Ressources</span
+                ><span class="stat-value" id="stat-resources">—</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Disponibles</span
+                ><span class="stat-value" id="stat-available">—</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Réservations</span
+                ><span class="stat-value" id="stat-reservations">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="dashboard-sections">
+            <div class="dash-section">
+              <div class="section-header">
+                <h3>Utilisateurs récents</h3>
+                <button class="link-btn" data-goto="users">Voir tout →</button>
+              </div>
+              <div id="recent-users"></div>
+            </div>
+            <div class="dash-section">
+              <div class="section-header">
+                <h3>Ressources récentes</h3>
+                <button class="link-btn" data-goto="resources">
+                  Voir tout →
+                </button>
+              </div>
+              <div id="recent-resources"></div>
+            </div>
+          </div>
+          <div class="dash-section" style="margin-top: 24px">
+            <div class="section-header"><h3>Répartition par type</h3></div>
+            <div id="resources-by-type" class="type-stats"></div>
+          </div>
+        </section>
+
+        <!-- RESOURCES -->
+        <section id="view-resources" class="view">
+          <header class="page-header">
+            <div>
+              <h1>Gestion des ressources</h1>
+              <p class="page-subtitle">
+                Créer, modifier et supprimer les ressources
+              </p>
+            </div>
+            <button class="btn-primary" id="btn-add-resource">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                style="width: 16px; height: 16px"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span>Ajouter</span>
+            </button>
+          </header>
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" /></svg
+              ><input
+                type="text"
+                id="resource-search"
+                placeholder="Rechercher…"
+              />
+            </div>
+            <select id="resource-type-filter" class="filter-select">
+              <option value="">Tous les types</option>
+              <option value="salle_reunion">Salle de réunion</option>
+              <option value="terrain_sport">Terrain de sport</option>
+              <option value="coworking">Coworking</option>
+              <option value="coiffeur">Coiffeur</option>
+             
+              <option value="hotel">Hôtel</option>
+            </select>
+            <select id="resource-avail-filter" class="filter-select">
+              <option value="">Disponibilité</option>
+              <option value="true">Disponible</option>
+              <option value="false">Indisponible</option>
+            </select>
+          </div>
+          <div id="resources-list" class="admin-table-wrap"></div>
+          <div id="resources-pagination" class="pagination"></div>
+        </section>
+
+        <!-- RESERVATIONS -->
+        <section id="view-reservations" class="view">
+          <header class="page-header">
+            <div>
+              <h1>Toutes les réservations</h1>
+              <p class="page-subtitle">Gérer l'ensemble des réservations</p>
+            </div>
+          </header>
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" /></svg
+              ><input
+                type="text"
+                id="reservation-search"
+                placeholder="Rechercher…"
+              />
+            </div>
+            <select id="reservation-status-filter" class="filter-select">
+              <option value="">Tous statuts</option>
+              <option value="pending">En attente</option>
+              <option value="confirmed">Confirmée</option>
+              <option value="cancelled">Annulée</option>
+            </select>
+          </div>
+          <div id="reservations-list" class="admin-table-wrap"></div>
+          <div id="reservations-pagination" class="pagination"></div>
+        </section>
+
+        <!-- USERS -->
+        <section id="view-users" class="view">
+          <header class="page-header">
+            <div>
+              <h1>Gestion des utilisateurs</h1>
+              <p class="page-subtitle">Gérer les comptes et les rôles</p>
+            </div>
+          </header>
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" /></svg
+              ><input type="text" id="user-search" placeholder="Rechercher…" />
+            </div>
+            <select id="user-role-filter" class="filter-select">
+              <option value="">Tous les rôles</option>
+              <option value="user">Utilisateur</option>
+              <option value="admin">Administrateur</option>
+            </select>
+          </div>
+          <div id="users-list" class="admin-table-wrap"></div>
+          <div id="users-pagination" class="pagination"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- MODAL ressource -->
+    <div id="modal-resource" class="modal-overlay hidden">
+      <div class="modal">
+        <button class="modal-close" data-close="modal-resource">✕</button>
+        <h2 class="modal-title" id="resource-modal-title">
+          Ajouter une ressource
+        </h2>
+        <form id="resource-form">
+          <input type="hidden" id="resource-id" />
+          <div class="field-group">
+            <label>Nom</label><input type="text" id="rf-name" required />
+          </div>
+          <div class="field-group">
+            <label>Type</label>
+            <select id="rf-type" required>
+              <option value="">Choisir un type</option>
+              <option value="salle_reunion">Salle de réunion</option>
+              <option value="terrain_sport">Terrain de sport</option>
+              <option value="coworking">Coworking</option>
+              <option value="coiffeur">Coiffeur</option>
+            
+              <option value="hotel">Hôtel</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label>Capacité</label
+              ><input type="number" id="rf-capacity" min="1" />
+            </div>
+            <div class="field-group">
+              <label>Prix/heure (€)</label
+              ><input type="number" id="rf-price" min="0" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Description</label
+            ><textarea id="rf-description" rows="3"></textarea>
+          </div>
+          <div class="field-group">
+            <label>Disponibilité</label>
+            <select id="rf-available">
+              <option value="true">Disponible</option>
+              <option value="false">Indisponible</option>
+            </select>
+          </div>
+          <div id="resource-form-error" class="form-error hidden"></div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn-secondary"
+              id="resource-form-cancel"
+            >
+              Annuler
+            </button>
+            <button type="submit" class="btn-primary">
+              <span id="resource-form-btn">Ajouter</span
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL confirmer suppression -->
+    <div id="modal-delete" class="modal-overlay hidden">
+      <div class="modal modal-sm">
+        <h2 class="modal-title" style="color: var(--danger)">
+          Confirmer la suppression
+        </h2>
+        <p
+          id="delete-message"
+          style="color: var(--gray-400); margin-bottom: 20px; line-height: 1.6"
+        ></p>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="cancel-delete-btn">Annuler</button>
+          <button class="btn-danger" id="confirm-delete-btn">Supprimer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL info utilisateur -->
+    <div id="modal-user" class="modal-overlay hidden">
+      <div class="modal">
+        <button class="modal-close" data-close="modal-user">✕</button>
+        <h2 class="modal-title">Détails de l'utilisateur</h2>
+        <div id="user-details"></div>
+        <div class="modal-actions" style="margin-top: 20px">
+          <button class="btn-secondary" id="user-form-cancel">Fermer</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="admin.js"></script>
+  </body>
+</html>

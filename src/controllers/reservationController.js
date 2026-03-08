@@ -1,18 +1,22 @@
-const Reservation = require('../models/Reservation');
-const Resource = require('../models/Resource');
-const paginate = require('../utils/paginate');
+const Reservation = require("../models/Reservation");
+const Resource = require("../models/Resource");
+const paginate = require("../utils/paginate");
 
 /**
  * Check if a time slot conflicts with existing reservations
  */
-const hasConflict = async (resourceId, date, startTime, endTime, excludeId = null) => {
+const hasConflict = async (
+  resourceId,
+  date,
+  startTime,
+  endTime,
+  excludeId = null
+) => {
   const filter = {
     resource: resourceId,
     date: new Date(date),
-    status: { $ne: 'cancelled' },
-    $or: [
-      { startTime: { $lt: endTime }, endTime: { $gt: startTime } },
-    ],
+    status: { $ne: "cancelled" },
+    $or: [{ startTime: { $lt: endTime }, endTime: { $gt: startTime } }],
   };
 
   if (excludeId) filter._id = { $ne: excludeId };
@@ -27,7 +31,7 @@ const hasConflict = async (resourceId, date, startTime, endTime, excludeId = nul
  */
 exports.getAll = async (req, res, next) => {
   try {
-    const { status, date, resourceId, userId, sort = '-date' } = req.query;
+    const { status, date, resourceId, userId, sort = "-date" } = req.query;
     const filter = {};
 
     if (status) filter.status = status;
@@ -50,7 +54,7 @@ exports.getAll = async (req, res, next) => {
  */
 exports.getMyReservations = async (req, res, next) => {
   try {
-    const { status, sort = '-date' } = req.query;
+    const { status, sort = "-date" } = req.query;
     const filter = { user: req.user._id };
     if (status) filter.status = status;
 
@@ -71,15 +75,17 @@ exports.getOne = async (req, res, next) => {
     const reservation = await Reservation.findById(req.params.id);
 
     if (!reservation) {
-      return res.status(404).json({ success: false, message: 'Réservation introuvable.' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Réservation introuvable." });
     }
 
     // Only owner or admin can see the reservation
     if (
-      req.user.role !== 'admin' &&
+      req.user.role !== "admin" &&
       reservation.user._id.toString() !== req.user._id.toString()
     ) {
-      return res.status(403).json({ success: false, message: 'Accès refusé.' });
+      return res.status(403).json({ success: false, message: "Accès refusé." });
     }
 
     res.json({ success: true, data: reservation });
@@ -98,10 +104,17 @@ exports.create = async (req, res, next) => {
     // Check that resource exists and is available
     const resource = await Resource.findById(resourceId);
     if (!resource) {
-      return res.status(404).json({ success: false, message: 'Ressource introuvable.' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Ressource introuvable." });
     }
     if (!resource.available) {
-      return res.status(400).json({ success: false, message: 'Cette ressource n\'est pas disponible.' });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Cette ressource n'est pas disponible.",
+        });
     }
 
     // Check time conflict
@@ -109,11 +122,12 @@ exports.create = async (req, res, next) => {
     if (conflict) {
       return res.status(409).json({
         success: false,
-        message: 'Ce créneau est déjà réservé. Veuillez choisir un autre horaire.',
+        message:
+          "Ce créneau est déjà réservé. Veuillez choisir un autre horaire.",
       });
     }
 
-    const data = { ...(req.body), user: req.user._id, resource: resourceId };
+    const data = { ...req.body, user: req.user._id, resource: resourceId };
     if (req.file) data.attachment = req.file.filename;
     delete data.resourceId;
 
@@ -134,18 +148,25 @@ exports.update = async (req, res, next) => {
     const reservation = await Reservation.findById(req.params.id);
 
     if (!reservation) {
-      return res.status(404).json({ success: false, message: 'Réservation introuvable.' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Réservation introuvable." });
     }
 
     if (
-      req.user.role !== 'admin' &&
+      req.user.role !== "admin" &&
       reservation.user._id.toString() !== req.user._id.toString()
     ) {
-      return res.status(403).json({ success: false, message: 'Accès refusé.' });
+      return res.status(403).json({ success: false, message: "Accès refusé." });
     }
 
-    if (reservation.status === 'cancelled') {
-      return res.status(400).json({ success: false, message: 'Impossible de modifier une réservation annulée.' });
+    if (reservation.status === "cancelled") {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Impossible de modifier une réservation annulée.",
+        });
     }
 
     const { date, startTime, endTime } = req.body;
@@ -162,7 +183,7 @@ exports.update = async (req, res, next) => {
       if (conflict) {
         return res.status(409).json({
           success: false,
-          message: 'Ce créneau est déjà réservé.',
+          message: "Ce créneau est déjà réservé.",
         });
       }
     }
@@ -185,24 +206,32 @@ exports.cancel = async (req, res, next) => {
     const reservation = await Reservation.findById(req.params.id);
 
     if (!reservation) {
-      return res.status(404).json({ success: false, message: 'Réservation introuvable.' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Réservation introuvable." });
     }
 
     if (
-      req.user.role !== 'admin' &&
+      req.user.role !== "admin" &&
       reservation.user._id.toString() !== req.user._id.toString()
     ) {
-      return res.status(403).json({ success: false, message: 'Accès refusé.' });
+      return res.status(403).json({ success: false, message: "Accès refusé." });
     }
 
-    if (reservation.status === 'cancelled') {
-      return res.status(400).json({ success: false, message: 'Réservation déjà annulée.' });
+    if (reservation.status === "cancelled") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Réservation déjà annulée." });
     }
 
-    reservation.status = 'cancelled';
+    reservation.status = "cancelled";
     await reservation.save();
 
-    res.json({ success: true, message: 'Réservation annulée avec succès.', data: reservation });
+    res.json({
+      success: true,
+      message: "Réservation annulée avec succès.",
+      data: reservation,
+    });
   } catch (error) {
     next(error);
   }
@@ -215,9 +244,11 @@ exports.remove = async (req, res, next) => {
   try {
     const reservation = await Reservation.findByIdAndDelete(req.params.id);
     if (!reservation) {
-      return res.status(404).json({ success: false, message: 'Réservation introuvable.' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Réservation introuvable." });
     }
-    res.json({ success: true, message: 'Réservation supprimée.' });
+    res.json({ success: true, message: "Réservation supprimée." });
   } catch (error) {
     next(error);
   }
@@ -232,7 +263,9 @@ exports.checkAvailability = async (req, res, next) => {
 
     const resource = await Resource.findById(resourceId);
     if (!resource) {
-      return res.status(404).json({ success: false, message: 'Ressource introuvable.' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Ressource introuvable." });
     }
 
     const conflict = await hasConflict(resourceId, date, startTime, endTime);
@@ -240,8 +273,33 @@ exports.checkAvailability = async (req, res, next) => {
     res.json({
       success: true,
       available: !conflict,
-      message: conflict ? 'Créneau non disponible.' : 'Créneau disponible.',
+      message: conflict ? "Créneau non disponible." : "Créneau disponible.",
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/reservations/recent
+ * Pour les notifications admin - retourne les réservations depuis une date
+ */
+exports.getRecent = async (req, res, next) => {
+  try {
+    const { since } = req.query;
+    const filter = {};
+
+    if (since) {
+      filter.createdAt = { $gt: new Date(since) };
+    }
+
+    const reservations = await Reservation.find(filter)
+      .populate("user", "username email")
+      .populate("resource", "name type")
+      .sort("-createdAt")
+      .limit(20);
+
+    res.json({ success: true, data: reservations });
   } catch (error) {
     next(error);
   }

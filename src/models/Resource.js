@@ -1,20 +1,26 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const resourceSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Le nom de la ressource est requis'],
+      required: [true, "Le nom de la ressource est requis"],
       trim: true,
     },
-    type: {
+type: {
       type: String,
-      required: [true, 'Le type est requis'],
-      enum: ['salle_reunion', 'terrain_sport', 'coworking', 'coiffeur'],
+      required: [true, "Le type est requis"],
+      enum: [
+        "salle_reunion",
+        "terrain_sport",
+        "coworking",
+        "coiffeur",
+         "hotel",
+      ],
     },
     capacity: {
       type: Number,
-      min: [1, 'La capacité doit être au moins 1'],
+      min: [1, "La capacité doit être au moins 1"],
     },
     description: {
       type: String,
@@ -39,6 +45,6 @@ const resourceSchema = new mongoose.Schema(
 
 // Indexes for search & filter
 resourceSchema.index({ type: 1, available: 1 });
-resourceSchema.index({ name: 'text', description: 'text' });
+resourceSchema.index({ name: "text", description: "text" });
 
-module.exports = mongoose.model('Resource', resourceSchema);
+module.exports = mongoose.model("Resource", resourceSchema);
