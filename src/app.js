@@ -58,6 +58,11 @@ if (process.env.NODE_ENV === "development") {
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 app.use(express.static(path.join(__dirname, "..", "public")));
 
+// ─── Admin Route ───────────────────────────────────────────────────────────────
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "admin.html"));
+});
+
 // ─── API Routes ────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/resources", resourceRoutes);

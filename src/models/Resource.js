@@ -15,7 +15,8 @@ type: {
         "terrain_sport",
         "coworking",
         "coiffeur",
-         "hotel",
+        "restaurant",
+        "hotel",
       ],
     },
     capacity: {

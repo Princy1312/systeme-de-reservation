@@ -19,7 +19,7 @@ userSchema.pre('save', async function(next) {
 
 const resourceSchema = new mongoose.Schema({
   name:         { type: String, required: true, trim: true },
-  type:         { type: String, required: true, enum: ['salle_reunion', 'terrain_sport', 'coworking', 'coiffeur'] },
+  type:         { type: String, required: true, enum: ['salle_reunion', 'terrain_sport', 'coworking', 'coiffeur', 'restaurant', 'hotel'] },
   capacity:     { type: Number, min: 1 },
   description:  { type: String, trim: true },
   image:        { type: String, default: null },
@@ -43,6 +43,12 @@ const defaultResources = [
   { name: 'Coupe Classique',     type: 'coiffeur',      capacity: 1,  description: 'Coupe cheveux classique homme ou femme', pricePerHour: 30 },
   { name: 'Coupe + Barbe',       type: 'coiffeur',      capacity: 1,  description: 'Coupe cheveux + taille et entretien de barbe', pricePerHour: 45 },
   { name: 'Coloration Complète', type: 'coiffeur',      capacity: 1,  description: 'Service coloration professionnelle, toutes teintes', pricePerHour: 80 },
+  { name: 'Restaurant Gastronomique', type: 'restaurant', capacity: 50, description: 'Restaurant gastronomique avec chef étoilé, vins sélectionnés', pricePerHour: 200 },
+  { name: 'Bistro Traditionnel',    type: 'restaurant', capacity: 30, description: 'Bistro français traditionnel avec plat du jour', pricePerHour: 120 },
+  { name: 'Café Lounge',           type: 'restaurant', capacity: 20, description: 'Café lounge avec cocktails et tapas', pricePerHour: 80 },
+  { name: 'Hôtel de Luxe',          type: 'hotel', capacity: 100, description: 'Hôtel 5 étoiles avec spa et restaurant gastronomique', pricePerHour: 500 },
+  { name: 'Boutique Hôtel',         type: 'hotel', capacity: 40, description: 'Boutique hôtel charmant avec service personnalisé', pricePerHour: 300 },
+  { name: 'Appart Hôtel',           type: 'hotel', capacity: 60, description: 'Appartements hôtel avec kitchenette et salon', pricePerHour: 250 },
 ];
 
 // ─── Seed Function ────────────────────────────────────────────────────────────

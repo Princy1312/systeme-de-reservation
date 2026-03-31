@@ -3,6 +3,19 @@ const Resource = require("../models/Resource");
 const paginate = require("../utils/paginate");
 
 /**
+ * Créer une notification pour les administrateurs
+ */
+const createAdminNotification = async (title, message, type = "reservation") => {
+  try {
+    // Pour l'instant, on stocke les notifications directement dans les réservations
+    // Le contrôleur admin les récupérera via getNotifications
+    console.log(`Notification admin: ${title} - ${message}`);
+  } catch (error) {
+    console.error("Erreur création notification admin:", error);
+  }
+};
+
+/**
  * Check if a time slot conflicts with existing reservations
  */
 const hasConflict = async (
@@ -133,6 +146,13 @@ exports.create = async (req, res, next) => {
 
     const reservation = await Reservation.create(data);
 
+    // Créer une notification pour les administrateurs
+    await createAdminNotification(
+      "Nouvelle réservation",
+      `${req.user.username || req.user.name} a réservé ${resource.name}`,
+      "reservation"
+    );
+
     res.status(201).json({ success: true, data: reservation });
   } catch (error) {
     next(error);
@@ -192,6 +212,15 @@ exports.update = async (req, res, next) => {
     if (req.file) reservation.attachment = req.file.filename;
     await reservation.save();
 
+    // Créer une notification pour les administrateurs si le statut change
+    if (req.body.status && req.body.status !== reservation.status) {
+      await createAdminNotification(
+        `Réservation ${req.body.status === "confirmed" ? "confirmée" : "modifiée"}`,
+        `${req.user.username || req.user.name} a ${req.body.status === "confirmed" ? "confirmé" : "modifié"} une réservation`,
+        "reservation"
+      );
+    }
+
     res.json({ success: true, data: reservation });
   } catch (error) {
     next(error);
@@ -226,6 +255,13 @@ exports.cancel = async (req, res, next) => {
 
     reservation.status = "cancelled";
     await reservation.save();
+
+    // Créer une notification pour les administrateurs
+    await createAdminNotification(
+      "Réservation annulée",
+      `${req.user.username || req.user.name} a annulé une réservation`,
+      "reservation"
+    );
 
     res.json({
       success: true,
