@@ -525,6 +525,7 @@ async function loadResources() {
     const list = d.data || d.resources || [];
     const pages = d.totalPages || Math.ceil((d.total || list.length) / 9);
     currentResources = list;
+    
     grid.innerHTML =
       list.length === 0
         ? `<div style="grid-column:1/-1">${empty(
@@ -546,6 +547,27 @@ async function loadResources() {
 
 function resCard(r, i) {
   const ok = r.available !== false;
+  
+  // Déterminer le statut de disponibilité
+  let availabilityText = '🟢 Disponible';
+  let availabilityClass = 'available';
+  
+  if (r.availabilityType === 'stock' && r.currentStock !== null) {
+    if (r.currentStock <= 0) {
+      availabilityText = `🔴 Plus en stock (${r.currentStock}/${r.totalStock})`;
+      availabilityClass = 'unavailable';
+    } else if (r.currentStock < r.totalStock * 0.2) {
+      availabilityText = `🟡 Stock faible (${r.currentStock}/${r.totalStock})`;
+      availabilityClass = 'partial';
+    } else {
+      availabilityText = `🟢 En stock (${r.currentStock}/${r.totalStock})`;
+      availabilityClass = 'available';
+    }
+  } else if (r.availabilityType === 'limited' && r.maxBookingsPerDay) {
+    availabilityText = `🟢 Limité (${r.maxBookingsPerDay}/jour)`;
+    availabilityClass = 'available';
+  }
+  
   return `<div class="resource-card" data-index="${i}">
     <div class="resource-card-top">
       <span class="resource-card-icon">${ICONS[r.type] || "📦"}</span>
@@ -563,12 +585,19 @@ function resCard(r, i) {
       }
     </div>
     <div class="resource-card-footer">
-      <span class="resource-price">${
-        r.pricePerHour ? `${r.pricePerHour}€/h` : "Gratuit"
-      }</span>
-      <button class="btn-book" ${ok ? "" : "disabled"}>${
+      <div class="resource-availability-info">
+        <span class="availability-status ${availabilityClass}">
+          ${availabilityText}
+        </span>
+      </div>
+      <div class="resource-card-footer-actions">
+        <span class="resource-price">${
+          r.pricePerHour ? `${r.pricePerHour}€/h` : "Gratuit"
+        }</span>
+        <button class="btn-book" ${ok ? "" : "disabled"}>${
     ok ? "Réserver" : "Indisponible"
   }</button>
+      </div>
     </div>
   </div>`;
 }
@@ -576,59 +605,53 @@ function resCard(r, i) {
 function openDetail(r) {
   currentDetailResource = r;
   const ok = r.available !== false;
-  $("modal-resource-content").innerHTML = `
+  
+  const content = $("modal-resource-content");
+  const modal = $("modal-resource");
+  if (!content || !modal) return;
+  
+  content.innerHTML = `
     <div class="resource-detail-header">
       <div class="resource-detail-icon-big">${ICONS[r.type] || "📦"}</div>
       <div>
         <div class="resource-detail-name">${esc(r.name)}</div>
-        <div style="color:var(--gray-400);font-size:.875rem;margin-top:4px">${
-          TYPES[r.type] || r.type
-        }</div>
+        <div class="resource-detail-type">${TYPES[r.type] || r.type}</div>
       </div>
     </div>
+    
     <div class="resource-detail-attrs">
-      <div class="attr-item"><div class="attr-label">Disponibilité</div><div class="attr-value" style="color:${
-        ok ? "var(--success)" : "var(--gray-400)"
-      }">${ok ? "✓ Disponible" : "✗ Indisponible"}</div></div>
-      ${
-        r.capacity
-          ? `<div class="attr-item"><div class="attr-label">Capacité</div><div class="attr-value">${r.capacity} personnes</div></div>`
-          : ""
-      }
-      ${
-        r.pricePerHour != null
-          ? `<div class="attr-item"><div class="attr-label">Tarif</div><div class="attr-value">${
-              r.pricePerHour ? `${r.pricePerHour}€/h` : "Gratuit"
-            }</div></div>`
-          : ""
-      }
-      ${
-        r.location
-          ? `<div class="attr-item"><div class="attr-label">Emplacement</div><div class="attr-value">${esc(
-              r.location
-            )}</div></div>`
-          : ""
-      }
+      <div class="attr-item">
+        <div class="attr-label">Capacité</div>
+        <div class="attr-value">${r.capacity ? `${r.capacity} personnes` : "—"}</div>
+      </div>
+      <div class="attr-item">
+        <div class="attr-label">Prix/heure</div>
+        <div class="attr-value">${r.pricePerHour ? `${r.pricePerHour}€` : "Gratuit"}</div>
+      </div>
     </div>
-    ${
-      r.description
-        ? `<p style="color:var(--gray-400);font-size:.9rem;margin-bottom:24px;line-height:1.6">${esc(
-            r.description
-          )}</p>`
-        : ""
-    }
-    ${
-      ok
-        ? `<button class="btn-primary" id="btn-reserver-maintenant"><span>Réserver maintenant</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>`
-        : ""
-    }`;
-  const btnR = $("btn-reserver-maintenant");
-  if (btnR)
-    btnR.addEventListener("click", () => {
+    
+    <div class="resource-detail-desc">
+      <div class="attr-label">Description</div>
+      <div class="attr-value">${r.description || "Aucune description"}</div>
+    </div>
+    
+    <div class="avail-status ${r.available !== false ? "available" : "unavailable"}">
+      ${r.available !== false ? "Disponible" : "Indisponible"}
+    </div>
+    
+    ${r.available !== false ? `<button class="btn-primary" id="btn-reserver-maintenant"><span>Réserver maintenant</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>` : ""}
+  `;
+  
+  modal.classList.remove("hidden");
+  
+  // Bouton réserver
+  const btnReserver = content.querySelector("#btn-reserver-maintenant");
+  if (btnReserver) {
+    btnReserver.addEventListener("click", () => {
       closeModal("modal-resource");
-      openBook(currentDetailResource);
+      openBook(r);
     });
-  $("modal-resource").classList.remove("hidden");
+  }
 }
 
 function openBook(r) {
@@ -777,6 +800,7 @@ document.querySelectorAll(".admin-tab").forEach((tab) => {
     tab.classList.add("active");
     $(`admin-${tab.dataset.adminTab}`).classList.add("active");
     if (tab.dataset.adminTab === "all-reservations") loadAllReservations();
+    if (tab.dataset.adminTab === "units") loadAdminUnits();
   });
 });
 
@@ -848,6 +872,263 @@ async function loadAdminResources() {
   }
 }
 
+// ── Admin : liste unités ───────────────────────────────
+async function loadAdminUnits() {
+  const el = $("admin-units");
+  el.innerHTML = '<div class="skeleton" style="height:300px;border-radius:12px"></div>';
+  
+  try {
+    // D'abord charger les ressources qui ont des unités
+    const resourcesRes = await api('/resources?limit=100');
+    const resourcesWithUnits = (resourcesRes.data || resourcesRes.resources || [])
+      .filter(r => r.hasUnits);
+    
+    if (resourcesWithUnits.length === 0) {
+      el.innerHTML = `
+        <div style="text-align:center;padding:40px">
+          <div style="font-size:2rem;margin-bottom:16px">📦</div>
+          <h3 style="color:var(--white);margin-bottom:8px">Aucune ressource avec unités</h3>
+          <p style="color:var(--gray-400);margin-bottom:20px">Créez d'abord une ressource en cochant "Gérer par unités spécifiques"</p>
+          <button class="btn-primary" onclick="document.querySelector('[data-admin-tab=resources]').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>Créer une ressource</span>
+          </button>
+        </div>
+      `;
+      return;
+    }
+    
+    // Charger toutes les unités
+    const unitsRes = await api('/units?limit=100');
+    const units = unitsRes.data || unitsRes.units || [];
+    
+    if (units.length === 0) {
+      el.innerHTML = `
+        <div style="text-align:center;padding:40px">
+          <div style="font-size:2rem;margin-bottom:16px">🏠</div>
+          <h3 style="color:var(--white);margin-bottom:8px">Aucune unité</h3>
+          <p style="color:var(--gray-400);margin-bottom:20px">Ajoutez des unités à vos ressources</p>
+          <button class="btn-primary" onclick="openUnitForm()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>Ajouter une unité</span>
+          </button>
+        </div>
+      `;
+      return;
+    }
+    
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="color:var(--white);margin:0">Unités (${units.length})</h3>
+        <button class="btn-primary" onclick="openUnitForm()" style="padding:8px 16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>Ajouter</span>
+        </button>
+      </div>
+      <div class="admin-unit-table">
+        <table class="res-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Numéro</th>
+              <th>Ressource</th>
+              <th>Capacité</th>
+              <th>Prix/h</th>
+              <th>Disponibilité</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${units.map((unit, i) => `
+              <tr>
+                <td style="font-weight:500;color:var(--white)">${esc(unit.name)}</td>
+                <td style="font-family:var(--font-mono);font-weight:600">${esc(unit.number)}</td>
+                <td>${esc(unit.resource?.name || '—')}</td>
+                <td>${unit.capacity || '—'}</td>
+                <td>${unit.pricePerHour != null ? `${unit.pricePerHour}€` : '—'}</td>
+                <td>
+                  <span class="badge ${unit.available ? 'confirmed' : 'cancelled'}">
+                    ${unit.available ? 'Disponible' : 'Indisponible'}
+                  </span>
+                </td>
+                <td style="display:flex;gap:6px">
+                  <button class="action-btn edit-unit-btn" data-index="${i}" title="Modifier">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button class="action-btn danger delete-unit-btn" data-index="${i}" title="Supprimer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14H6L5 6"/>
+                      <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    // Stocker pour référence
+    currentUnits = units;
+    
+    // Modifier
+    el.querySelectorAll('.edit-unit-btn').forEach(btn => {
+      btn.addEventListener('click', () => 
+        openUnitForm(currentUnits[parseInt(btn.dataset.index)])
+      );
+    });
+    
+    // Supprimer
+    el.querySelectorAll('.delete-unit-btn').forEach(btn => {
+      btn.addEventListener('click', () => 
+        deleteUnit(currentUnits[parseInt(btn.dataset.index)])
+      );
+    });
+    
+  } catch (e) {
+    el.innerHTML = `<div style="grid-column:1/-1">${empty(e.message)}</div>`;
+  }
+}
+
+// ── Admin : formulaire unité ───────────────────────────────
+function openUnitForm(unit) {
+  const form = $('unit-form');
+  const titleEl = $('unit-form-title');
+  const btnText = $('unit-form-btn-text');
+  
+  // Reset form
+  form.reset();
+  $('unit-form-id').value = '';
+  
+  // Charger les ressources avec unités
+  loadResourcesForUnitSelect();
+  
+  if (unit) {
+    // Edit mode
+    titleEl.textContent = 'Modifier l\'unité';
+    btnText.textContent = 'Mettre à jour';
+    $('unit-form-id').value = unit._id;
+    $('unit-name').value = unit.name || '';
+    $('unit-number').value = unit.number || '';
+    $('unit-resource').value = unit.resource?._id || '';
+    $('unit-capacity').value = unit.capacity || '';
+    $('unit-price').value = unit.pricePerHour || '';
+    $('unit-description').value = unit.description || '';
+    $('unit-available').value = unit.available !== false ? 'true' : 'false';
+    
+    // Caractéristiques
+    $('unit-floor').value = unit.features?.floor || '';
+    $('unit-size').value = unit.features?.size || '';
+    $('unit-has-window').checked = unit.features?.hasWindow || false;
+    $('unit-has-ac').checked = unit.features?.hasAC || false;
+    $('unit-has-wifi').checked = unit.features?.hasWiFi || false;
+    $('unit-has-tv').checked = unit.features?.hasTV || false;
+    $('unit-has-bathroom').checked = unit.features?.hasBathroom || false;
+    $('unit-has-projector').checked = unit.features?.hasProjector || false;
+    $('unit-has-whiteboard').checked = unit.features?.hasWhiteboard || false;
+    $('unit-has-lighting').checked = unit.features?.hasLighting || false;
+  } else {
+    // Create mode
+    titleEl.textContent = 'Ajouter une unité';
+    btnText.textContent = 'Ajouter';
+    $('unit-available').value = 'true';
+  }
+  
+  $('modal-unit').classList.remove('hidden');
+}
+
+async function loadResourcesForUnitSelect() {
+  try {
+    const res = await api('/resources?limit=100');
+    const resources = res.data || res.resources || [];
+    const resourcesWithUnits = resources.filter(r => r.hasUnits);
+    
+    const select = $('unit-resource');
+    select.innerHTML = '<option value="">Choisir une ressource</option>' +
+      resourcesWithUnits.map(r => 
+        `<option value="${r._id}">${esc(r.name)}</option>`
+      ).join('');
+  } catch (e) {
+    console.error('Erreur chargement ressources:', e);
+  }
+}
+
+$('unit-form-cancel').addEventListener('click', () => 
+  closeModal('modal-unit')
+);
+
+$('unit-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = $('unit-form-error');
+  const btn = e.target.querySelector('button[type=submit]');
+  errEl.classList.add('hidden');
+  btn.disabled = true;
+  
+  const body = {
+    name: $('unit-name').value,
+    number: $('unit-number').value,
+    resource: $('unit-resource').value,
+    capacity: $('unit-capacity').value ? parseInt($('unit-capacity').value) : undefined,
+    pricePerHour: $('unit-price').value !== '' ? parseFloat($('unit-price').value) : undefined,
+    description: $('unit-description').value || undefined,
+    available: $('unit-available').value === 'true',
+    features: {
+      floor: $('unit-floor').value ? parseInt($('unit-floor').value) : undefined,
+      size: $('unit-size').value ? parseInt($('unit-size').value) : undefined,
+      hasWindow: $('unit-has-window').checked,
+      hasAC: $('unit-has-ac').checked,
+      hasWiFi: $('unit-has-wifi').checked,
+      hasTV: $('unit-has-tv').checked,
+      hasBathroom: $('unit-has-bathroom').checked,
+      hasProjector: $('unit-has-projector').checked,
+      hasWhiteboard: $('unit-has-whiteboard').checked,
+      hasLighting: $('unit-has-lighting').checked
+    }
+  };
+  
+  try {
+    if ($('unit-form-id').value) {
+      await put(`/units/${$('unit-form-id').value}`, body);
+      toast('Unité modifiée !');
+    } else {
+      await post('/units', body);
+      toast('Unité ajoutée !');
+    }
+    closeModal('modal-unit');
+    loadAdminUnits();
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+async function deleteUnit(unit) {
+  if (!confirm(`Supprimer l'unité "${unit.name}" (${unit.number}) ?`)) return;
+  try {
+    await del(`/units/${unit._id}`);
+    toast('Unité supprimée');
+    loadAdminUnits();
+  } catch (e) {
+    toast(e.message, true);
+  }
+}
+
 // ── Admin : toutes les réservations ──────────────────
 async function loadAllReservations() {
   const el = $("admin-all-reservations");
@@ -892,27 +1173,99 @@ async function loadAllReservations() {
     el.innerHTML = empty(e.message);
   }
 }
-
 // ── Admin : formulaire ressource ──────────────────────
 $("btn-add-resource").addEventListener("click", () => openResourceForm(null));
 
 function openResourceForm(r) {
-  editingResourceId = r ? r._id : null;
-  $("resource-form-title").textContent = r
-    ? "Modifier la ressource"
-    : "Ajouter une ressource";
-  $("resource-form-btn-text").textContent = r ? "Modifier" : "Ajouter";
-  $("resource-form").reset();
-  $("resource-form-error").classList.add("hidden");
+  const form = $("resource-form");
+  const titleEl = $("resource-form-title");
+  const btnText = $("resource-form-btn-text");
+  
+  // Reset form
+  form.reset();
+  $("resource-form-id").value = "";
+  
+  // Toggle availability fields based on type
+  const availabilityTypeSelect = $("rf-availability-type");
+  const maxBookingsGroup = $("max-bookings-group");
+  const stockGroup = $("stock-group");
+  const availabilitySection = $("availability-section");
+  const hasUnitsCheckbox = $("rf-has-units");
+  
+  function toggleAvailabilityFields() {
+    const type = availabilityTypeSelect.value;
+    maxBookingsGroup.style.display = type === "limited" ? "block" : "none";
+    stockGroup.style.display = type === "stock" ? "flex" : "none";
+  }
+  
+  function toggleUnitsMode() {
+    const hasUnits = hasUnitsCheckbox.checked;
+    availabilitySection.style.display = hasUnits ? "none" : "block";
+    
+    // Si hasUnits est coché, forcer le type de disponibilité à unlimited
+    if (hasUnits) {
+      availabilityTypeSelect.value = "unlimited";
+      toggleAvailabilityFields();
+    }
+  }
+  
+  availabilityTypeSelect.addEventListener("change", toggleAvailabilityFields);
+  hasUnitsCheckbox.addEventListener("change", toggleUnitsMode);
+  
   if (r) {
+    // Edit mode
+    titleEl.textContent = "Modifier la ressource";
+    btnText.textContent = "Mettre à jour";
+    $("resource-form-id").value = r._id;
     $("rf-name").value = r.name || "";
     $("rf-type").value = r.type || "";
     $("rf-capacity").value = r.capacity || "";
-    $("rf-price").value = r.pricePerHour ?? "";
+    $("rf-price").value = r.pricePerHour || "";
     $("rf-location").value = r.location || "";
     $("rf-description").value = r.description || "";
     $("rf-available").value = r.available !== false ? "true" : "false";
+    
+    // Set hasUnits
+    $("rf-has-units").checked = r.hasUnits || false;
+    
+    // Set availability fields
+    $("rf-availability-type").value = r.availabilityType || "unlimited";
+    $("rf-max-bookings").value = r.maxBookingsPerDay || "";
+    $("rf-total-stock").value = r.totalStock || "";
+    $("rf-current-stock").value = r.currentStock || "";
+    
+    // Set hours
+    if (r.availableHours) {
+      const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+      days.forEach(day => {
+        const dayData = r.availableHours[day];
+        if (dayData) {
+          $(`rf-${day}-open`).value = dayData.open || "";
+          $(`rf-${day}-close`).value = dayData.close || "";
+          $(`rf-${day}-closed`).checked = dayData.closed || false;
+        }
+      });
+    }
+    
+    toggleUnitsMode();
+    toggleAvailabilityFields();
+  } else {
+    // Create mode
+    titleEl.textContent = "Ajouter une ressource";
+    btnText.textContent = "Ajouter";
+    
+    // Set default hours (8h-20h, all days open)
+    const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    days.forEach(day => {
+      $(`rf-${day}-open`).value = "08:00";
+      $(`rf-${day}-close`).value = "20:00";
+      $(`rf-${day}-closed`).checked = false;
+    });
+    
+    toggleUnitsMode();
+    toggleAvailabilityFields();
   }
+  
   $("modal-resource-form").classList.remove("hidden");
 }
 
@@ -938,6 +1291,56 @@ $("resource-form").addEventListener("submit", async (e) => {
     location: $("rf-location").value || undefined,
     description: $("rf-description").value || undefined,
     available: $("rf-available").value === "true",
+    // Ajouter le champ hasUnits
+    hasUnits: $("rf-has-units").checked,
+    // Ajouter les champs de disponibilité
+    availabilityType: $("rf-availability-type").value,
+    maxBookingsPerDay: $("rf-max-bookings").value 
+      ? parseInt($("rf-max-bookings").value) 
+      : undefined,
+    totalStock: $("rf-total-stock").value 
+      ? parseInt($("rf-total-stock").value) 
+      : undefined,
+    currentStock: $("rf-current-stock").value 
+      ? parseInt($("rf-current-stock").value) 
+      : undefined,
+    availableHours: {
+      monday: {
+        open: $("rf-monday-open").value,
+        close: $("rf-monday-close").value,
+        closed: $("rf-monday-closed").checked
+      },
+      tuesday: {
+        open: $("rf-tuesday-open").value,
+        close: $("rf-tuesday-close").value,
+        closed: $("rf-tuesday-closed").checked
+      },
+      wednesday: {
+        open: $("rf-wednesday-open").value,
+        close: $("rf-wednesday-close").value,
+        closed: $("rf-wednesday-closed").checked
+      },
+      thursday: {
+        open: $("rf-thursday-open").value,
+        close: $("rf-thursday-close").value,
+        closed: $("rf-thursday-closed").checked
+      },
+      friday: {
+        open: $("rf-friday-open").value,
+        close: $("rf-friday-close").value,
+        closed: $("rf-friday-closed").checked
+      },
+      saturday: {
+        open: $("rf-saturday-open").value,
+        close: $("rf-saturday-close").value,
+        closed: $("rf-saturday-closed").checked
+      },
+      sunday: {
+        open: $("rf-sunday-open").value,
+        close: $("rf-sunday-close").value,
+        closed: $("rf-sunday-closed").checked
+      }
+    }
   };
 
   try {

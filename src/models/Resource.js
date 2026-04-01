@@ -7,12 +7,12 @@ const resourceSchema = new mongoose.Schema(
       required: [true, "Le nom de la ressource est requis"],
       trim: true,
     },
-type: {
+    type: {
       type: String,
       required: [true, "Le type est requis"],
       enum: [
         "salle_reunion",
-        "terrain_sport",
+        "terrain_sport", 
         "coworking",
         "coiffeur",
         "restaurant",
@@ -40,6 +40,37 @@ type: {
       default: 0,
       min: 0,
     },
+    // Champs de disponibilité pour l'admin
+    availabilityType: {
+      type: String,
+      enum: ["unlimited", "limited", "stock"],
+      default: "unlimited"
+    },
+    maxBookingsPerDay: {
+      type: Number,
+      min: 1,
+      default: null
+    },
+    totalStock: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    currentStock: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    // Horaires de disponibilité
+    availableHours: {
+      monday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      tuesday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      wednesday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      thursday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      friday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      saturday: { open: String, close: String, closed: { type: Boolean, default: false } },
+      sunday: { open: String, close: String, closed: { type: Boolean, default: false } }
+    }
   },
   { timestamps: true }
 );

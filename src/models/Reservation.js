@@ -16,25 +16,37 @@ const reservationSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Le titre est requis'],
       trim: true,
+      maxlength: [100, 'Le titre ne peut pas dépasser 100 caractères'],
     },
     date: {
       type: Date,
       required: [true, 'La date est requise'],
+      min: [new Date(), 'La date ne peut pas être dans le passé'],
     },
     startTime: {
       type: String,
       required: [true, 'L\'heure de début est requise'],
-      match: [/^([0-1]\d|2[0-3]):([0-5]\d)$/, 'Format d\'heure invalide (HH:MM)'],
+      validate: {
+        validator: function (v) {
+          return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
+        },
+        message: "Format d'heure invalide (HH:MM)",
+      },
     },
     endTime: {
       type: String,
       required: [true, 'L\'heure de fin est requise'],
-      match: [/^([0-1]\d|2[0-3]):([0-5]\d)$/, 'Format d\'heure invalide (HH:MM)'],
+      validate: {
+        validator: function (v) {
+          return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
+        },
+        message: "Format d'heure invalide (HH:MM)",
+      },
     },
     status: {
       type: String,
       enum: ['pending', 'confirmed', 'cancelled'],
-      default: 'confirmed',
+      default: 'pending',
     },
     notes: {
       type: String,

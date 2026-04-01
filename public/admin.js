@@ -14,6 +14,14 @@ const rLimit = 15,
 let currentResources = [];
 let currentReservations = [];
 let currentUsers = [];
+let currentUnits = [];
+
+// Filters
+const rFilters = { search: "", type: "", available: "" };
+const uFilters = { search: "", resource: "", available: "" };
+const uFiltersUsers = { search: "", role: "" };
+let rDebT;
+let uDebT;
 
 // Delete callback
 let deleteCallback = null;
@@ -328,16 +336,13 @@ $("reservation-status-filter")?.addEventListener("change", (e) => {
 });
 
 // ── USERS (COMPLETE) ──────────────────────────────────
-const uFilters = { search: "", role: "" };
-let uDebT;
-
 async function loadUsers() {
   try {
     const params = new URLSearchParams({
       page: uPage,
       limit: uLimit,
-      search: uFilters.search,
-      role: uFilters.role,
+      search: uFiltersUsers.search,
+      role: uFiltersUsers.role,
     });
     const d = await api(`/admin/users?${params}`);
     currentUsers = d.data || [];
@@ -497,21 +502,18 @@ async function deleteUser(id) {
 
 // Filters
 $("user-search")?.addEventListener("input", (e) => {
-  uFilters.search = e.target.value;
+  uFiltersUsers.search = e.target.value;
   clearTimeout(uDebT);
   uDebT = setTimeout(loadUsers, 300);
 });
 
 $("user-role-filter")?.addEventListener("change", (e) => {
-  uFilters.role = e.target.value;
+  uFiltersUsers.role = e.target.value;
   uPage = 1;
   loadUsers();
 });
 
 // ── RESOURCES ─────────────────────────────────────────
-const rFilters = { search: "", type: "", available: "" };
-let rDebT;
-
 async function loadResources() {
   try {
     const params = new URLSearchParams({
@@ -566,7 +568,7 @@ function renderResources() {
                 <button class="btn-delete" data-id="${r._id}" title="Supprimer">
                   <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="width: 16px; height: 16px;">
                     <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
                   </svg>
                 </button>
               </td>

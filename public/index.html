@@ -154,10 +154,12 @@
       <!-- Tabs admin -->
       <div class="admin-tabs">
         <button class="admin-tab active" data-admin-tab="resources">Ressources</button>
+        <button class="admin-tab" data-admin-tab="units">Unités</button>
         <button class="admin-tab" data-admin-tab="all-reservations">Toutes les réservations</button>
       </div>
 
       <div id="admin-resources" class="admin-panel active"></div>
+      <div id="admin-units" class="admin-panel"></div>
       <div id="admin-all-reservations" class="admin-panel"></div>
     </section>
 
@@ -217,6 +219,108 @@
       </div>
       <div class="field-group"><label>Emplacement <span class="optional">(optionnel)</span></label><input type="text" id="rf-location" placeholder="Ex: Bâtiment A, 2ème étage" /></div>
       <div class="field-group"><label>Description <span class="optional">(optionnel)</span></label><textarea id="rf-description" placeholder="Décrivez la ressource…" rows="3"></textarea></div>
+      
+      <!-- Section Gestion par unités -->
+      <div class="form-section-title">Type de gestion</div>
+      
+      <div class="field-group">
+        <label>
+          <input type="checkbox" id="rf-has-units"> Gérer par unités spécifiques (chambres, salles, etc.)
+        </label>
+        <div class="form-help">Cochez cette case si vous voulez gérer des unités individuelles avec des numéros (ex: Chambre 101, Salle A, etc.)</div>
+      </div>
+      
+      <!-- Section Disponibilité (masqué si hasUnits est coché) -->
+      <div id="availability-section">
+        <div class="form-section-title">Disponibilité et Gestion</div>
+        
+        <div class="field-group">
+          <label>Type de disponibilité</label>
+          <select id="rf-availability-type" required>
+            <option value="unlimited">Illimitée</option>
+            <option value="limited">Limitée par jour</option>
+            <option value="stock">Gestion par stock</option>
+          </select>
+        </div>
+        
+        <div class="field-group" id="max-bookings-group" style="display: none;">
+          <label>Nombre maximum de réservations par jour</label>
+          <input type="number" id="rf-max-bookings" placeholder="Ex: 5" min="1" />
+        </div>
+        
+        <div class="field-row" id="stock-group" style="display: none;">
+          <div class="field-group"><label>Stock total</label><input type="number" id="rf-total-stock" placeholder="Ex: 100" min="0" /></div>
+          <div class="field-group"><label>Stock actuel</label><input type="number" id="rf-current-stock" placeholder="Ex: 85" min="0" /></div>
+        </div>
+      </div>
+      
+      <!-- Horaires d'ouverture -->
+      <div class="form-section-title">Horaires d'ouverture</div>
+      
+      <div class="availability-hours-grid">
+        <div class="day-hours">
+          <label>Lundi</label>
+          <div class="hours-row">
+            <input type="time" id="rf-monday-open" placeholder="08:00" />
+            <input type="time" id="rf-monday-close" placeholder="20:00" />
+            <label class="checkbox-label"><input type="checkbox" id="rf-monday-closed"> Fermé</label>
+          </div>
+        </div>
+        
+        <div class="day-hours">
+          <label>Mardi</label>
+          <div class="hours-row">
+            <input type="time" id="rf-tuesday-open" placeholder="08:00" />
+            <input type="time" id="rf-tuesday-close" placeholder="20:00" />
+            <label class="checkbox-label"><input type="checkbox" id="rf-tuesday-closed"> Fermé</label>
+          </div>
+        </div>
+        
+        <div class="day-hours">
+          <label>Mercredi</label>
+          <div class="hours-row">
+            <input type="time" id="rf-wednesday-open" placeholder="08:00" />
+            <input type="time" id="rf-wednesday-close" placeholder="20:00" />
+            <label class="checkbox-label"><input type="checkbox" id="rf-wednesday-closed"> Fermé</label>
+          </div>
+        </div>
+        
+        <div class="day-hours">
+          <label>Jeudi</label>
+          <div class="hours-row">
+            <input type="time" id="rf-thursday-open" placeholder="08:00" />
+            <input type="time" id="rf-thursday-close" placeholder="20:00" />
+            <label class="checkbox-label"><input type="checkbox" id="rf-thursday-closed"> Fermé</label>
+          </div>
+        </div>
+        
+        <div class="day-hours">
+          <label>Vendredi</label>
+          <div class="hours-row">
+            <input type="time" id="rf-friday-open" placeholder="08:00" />
+            <input type="time" id="rf-friday-close" placeholder="20:00" />
+            <label class="checkbox-label"><input type="checkbox" id="rf-friday-closed"> Fermé</label>
+          </div>
+        </div>
+        
+        <div class="day-hours">
+          <label>Samedi</label>
+          <div class="hours-row">
+            <input type="time" id="rf-saturday-open" placeholder="08:00" />
+            <input type="time" id="rf-saturday-close" placeholder="20:00" />
+            <label class="checkbox-label"><input type="checkbox" id="rf-saturday-closed"> Fermé</label>
+          </div>
+        </div>
+        
+        <div class="day-hours">
+          <label>Dimanche</label>
+          <div class="hours-row">
+            <input type="time" id="rf-sunday-open" placeholder="08:00" />
+            <input type="time" id="rf-sunday-close" placeholder="20:00" />
+            <label class="checkbox-label"><input type="checkbox" id="rf-sunday-closed"> Fermé</label>
+          </div>
+        </div>
+      </div>
       <div class="field-group">
         <label>Disponibilité</label>
         <select id="rf-available">
@@ -228,6 +332,73 @@
       <div class="modal-actions">
         <button type="button" class="btn-secondary" id="resource-form-cancel">Annuler</button>
         <button type="submit" class="btn-primary"><span id="resource-form-btn-text">Ajouter</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL unité -->
+<div id="modal-unit" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <button class="modal-close" data-close="modal-unit">✕</button>
+    <h2 class="modal-title" id="unit-form-title">Ajouter une unité</h2>
+    <form id="unit-form">
+      <input type="hidden" id="unit-form-id" />
+      <div class="field-group">
+        <label>Ressource parente</label>
+        <select id="unit-resource" required>
+          <option value="">Choisir une ressource</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field-group"><label>Nom de l'unité</label><input type="text" id="unit-name" placeholder="Ex: Chambre Deluxe" required /></div>
+        <div class="field-group"><label>Numéro</label><input type="text" id="unit-number" placeholder="Ex: 101" required /></div>
+      </div>
+      <div class="field-row">
+        <div class="field-group"><label>Capacité</label><input type="number" id="unit-capacity" placeholder="Ex: 2" min="1" /></div>
+        <div class="field-group"><label>Prix/heure (€)</label><input type="number" id="unit-price" placeholder="Ex: 75" min="0" /></div>
+      </div>
+      <div class="field-group"><label>Description <span class="optional">(optionnel)</span></label><textarea id="unit-description" placeholder="Description de l'unité…" rows="2"></textarea></div>
+      
+      <!-- Caractéristiques -->
+      <div class="form-section-title">Caractéristiques</div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>Étage</label>
+          <input type="number" id="unit-floor" placeholder="Ex: 1" min="1" />
+        </div>
+        <div class="field-group">
+          <label>Surface (m²)</label>
+          <input type="number" id="unit-size" placeholder="Ex: 25" min="1" />
+        </div>
+      </div>
+      
+      <div class="field-group">
+        <label>Équipements</label>
+        <div class="checkbox-grid">
+          <label class="checkbox-label"><input type="checkbox" id="unit-has-window"> Fenêtre</label>
+          <label class="checkbox-label"><input type="checkbox" id="unit-has-ac"> Climatisation</label>
+          <label class="checkbox-label"><input type="checkbox" id="unit-has-wifi"> WiFi</label>
+          <label class="checkbox-label"><input type="checkbox" id="unit-has-tv"> TV</label>
+          <label class="checkbox-label"><input type="checkbox" id="unit-has-bathroom"> Salle de bain</label>
+          <label class="checkbox-label"><input type="checkbox" id="unit-has-projector"> Projecteur</label>
+          <label class="checkbox-label"><input type="checkbox" id="unit-has-whiteboard"> Tableau blanc</label>
+          <label class="checkbox-label"><input type="checkbox" id="unit-has-lighting"> Éclairage</label>
+        </div>
+      </div>
+      
+      <div class="field-group">
+        <label>Disponibilité</label>
+        <select id="unit-available">
+          <option value="true">Disponible</option>
+          <option value="false">Indisponible</option>
+        </select>
+      </div>
+      
+      <div id="unit-form-error" class="form-error hidden"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="unit-form-cancel">Annuler</button>
+        <button type="submit" class="btn-primary"><span id="unit-form-btn-text">Ajouter</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
       </div>
     </form>
   </div>

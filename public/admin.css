@@ -2,6 +2,48 @@
    ADMIN DASHBOARD - Styles spécifiques
 ══════════════════════════════════════════════════════ */
 
+/* Form Section Titles */
+.form-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--white);
+  margin: 24px 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--gray-700);
+}
+
+/* Form Help Text */
+.form-help {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* Checkbox Grid */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.checkbox-grid .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  cursor: pointer;
+  margin: 0;
+}
+
+.checkbox-grid .checkbox-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--primary);
+}
+
 /* ── Header Right ───────────────────────────────────── */
 .header-right {
   display: flex;

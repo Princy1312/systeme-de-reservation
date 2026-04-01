@@ -9,6 +9,7 @@ const upload = require('../config/multer');
 // Public
 router.get('/', resourceController.getAll);
 router.get('/:id', resourceController.getOne);
+router.get('/:id/availability', resourceController.getAvailability);
 
 // Admin only
 router.post(
