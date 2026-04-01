@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const speakeasy = require("speakeasy");
 const QRCode = require("qrcode");
 const User = require("../models/User");
+const { sendVerificationCode } = require("../config/email");
 
 const devSecret = "reserv_dev_secret_2024_change_in_prod";
 
@@ -231,6 +232,94 @@ exports.enable2FA = async (req, res, next) => {
         .status(400)
         .json({ success: false, message: "Verification code incorrect" });
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/auth/send-code
+ */
+exports.sendCode = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email requis" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Utilisateur non trouvé" });
+    }
+
+    // Générer un code à 6 chiffres
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Sauvegarder le code et sa date d'expiration dans la base de données
+    await User.findByIdAndUpdate(user._id, {
+      emailVerificationCode: code,
+      emailVerificationExpires: Date.now() + 10 * 60 * 1000 // 10 minutes
+    });
+
+    // Envoyer le code par email
+    const emailSent = await sendVerificationCode(email, code);
+    
+    if (emailSent) {
+      res.json({ 
+        success: true, 
+        message: "Code envoyé avec succès" 
+      });
+    } else {
+      res.status(500).json({ 
+        success: false, 
+        message: "Erreur lors de l'envoi du code" 
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/auth/verify-code
+ */
+exports.verifyCode = async (req, res, next) => {
+  try {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email et code requis" });
+    }
+
+    const user = await User.findOne({ 
+      email,
+      emailVerificationCode: code,
+      emailVerificationExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Code invalide ou expiré" });
+    }
+
+    // Effacer le code de vérification après utilisation
+    await User.findByIdAndUpdate(user._id, {
+      $unset: {
+        emailVerificationCode: 1,
+        emailVerificationExpires: 1
+      }
+    });
+
+    // Envoyer le token JWT
+    sendTokenResponse(user, 200, res);
   } catch (error) {
     next(error);
   }

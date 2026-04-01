@@ -63,6 +63,11 @@ app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "admin.html"));
 });
 
+// ─── Login Code Route ───────────────────────────────────────────────────────────
+app.get("/login-code", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "login-code.html"));
+});
+
 // ─── API Routes ────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/resources", resourceRoutes);

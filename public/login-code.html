@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Code d'accès - RÉSERV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .code-container {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .code-input {
+      width: 50px;
+      height: 60px;
+      font-size: 24px;
+      text-align: center;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--white);
+      font-family: 'DM Mono', monospace;
+      transition: all 0.3s ease;
+    }
+    .code-input:focus {
+      border-color: var(--primary);
+      outline: none;
+      transform: scale(1.05);
+    }
+    .code-input.filled {
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .email-display {
+      background: var(--surface);
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+    .email-display strong {
+      color: var(--primary);
+    }
+    .resend-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-top: 15px;
+      transition: opacity 0.3s ease;
+    }
+    .resend-btn:hover {
+      opacity: 0.8;
+    }
+    .resend-btn:disabled {
+      color: var(--gray-400);
+      cursor: not-allowed;
+    }
+    .timer {
+      color: var(--gray-400);
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-left">
+    <div class="auth-brand"><span class="brand-mark">R</span><span class="brand-name">RÉSERV</span></div>
+    <div class="auth-tagline"><p>Vérification en deux étapes.</p><p>Sécurité renforcée.</p></div>
+    <div class="auth-grid-deco"></div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-form-container">
+      <div class="form-header">
+        <h2>Code de vérification</h2>
+        <p>Entrez votre email pour recevoir un code de vérification</p>
+      </div>
+      
+      <form id="email-form" class="auth-form">
+        <div class="field-group">
+          <label>Email</label>
+          <input type="email" id="email-input" placeholder="vous@exemple.com" required>
+        </div>
+        
+        <div id="email-error" class="form-error hidden"></div>
+        
+        <button type="submit" class="btn-primary">
+          <span>Envoyer le code</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </form>
+
+      <form id="code-form" class="auth-form hidden">
+        <div class="email-display">
+          Un code a été envoyé à : <strong id="user-email">email@example.com</strong>
+        </div>
+
+        <div class="code-container">
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" required>
+        </div>
+        
+        <div id="code-error" class="form-error hidden"></div>
+        
+        <button type="submit" class="btn-primary">
+          <span>Vérifier</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+        
+        <div style="text-align: center; margin-top: 20px;">
+          <button type="button" class="resend-btn" id="resend-btn">
+            Renvoyer le code
+          </button>
+          <div class="timer" id="timer"></div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 15px;">
+          <button type="button" class="btn-secondary" id="back-btn" style="background: none; border: 1px solid var(--border);">
+            Changer d'email
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<script src="login-code.js"></script>
+</body>
+</html>

@@ -28,10 +28,13 @@ const STATUS = {
 
 // ── API ──────────────────────────────────────────────
 async function api(path, opts = {}) {
+  // Utiliser le token stocké (peut venir de la page de code)
+  const currentToken = localStorage.getItem("token") || localStorage.getItem("reserv_token");
+  
   const res = await fetch(API + path, {
     headers: {
       "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(currentToken && { Authorization: `Bearer ${currentToken}` }),
     },
     ...opts,
   });
@@ -114,19 +117,199 @@ async function authSubmit(formId, endpoint, getBody, btnText, loadingText) {
   }
 }
 
-$("login-form").addEventListener("submit", (e) => {
+$("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  authSubmit(
-    "login-form",
-    "/auth/login",
-    () => ({
-      email: $("login-email").value,
-      password: $("login-password").value,
-    }),
-    "Se connecter",
-    "Connexion…"
-  );
+  const form = $("login-form");
+  const errEl = form.querySelector(".form-error");
+  const btn = form.querySelector("#login-btn");
+  const email = $("login-email").value;
+  const password = $("login-password").value;
+  const codeGroup = $("code-group");
+  const codeInputs = document.querySelectorAll('.code-input');
+  
+  errEl.classList.add("hidden");
+  btn.disabled = true;
+  
+  // Si le groupe de code est visible, vérifier le code
+  if (codeGroup.style.display !== 'none') {
+    btn.querySelector("span").textContent = "Vérification...";
+    
+    const code = Array.from(codeInputs).map(input => input.value).join('');
+    
+    if (code.length !== 6) {
+      errEl.textContent = "Veuillez entrer les 6 chiffres du code";
+      errEl.classList.remove("hidden");
+      btn.disabled = false;
+      btn.querySelector("span").textContent = "Se connecter";
+      return;
+    }
+    
+    try {
+      const response = await fetch(API + "/auth/verify-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, code }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        token = data.token;
+        localStorage.setItem("token", token);
+        localStorage.removeItem("pendingEmail");
+        user = data.user || data.data;
+        launchApp();
+      } else {
+        errEl.textContent = data.message || "Code invalide";
+        errEl.classList.remove("hidden");
+        clearCodeInputs();
+      }
+    } catch (error) {
+      errEl.textContent = "Erreur de connexion. Veuillez réessayer.";
+      errEl.classList.remove("hidden");
+    }
+  } else {
+    // Vérifier les identifiants et envoyer le code
+    btn.querySelector("span").textContent = "Connexion...";
+    
+    try {
+      // D'abord vérifier les identifiants
+      const response = await fetch(API + "/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Email ou mot de passe incorrect");
+      }
+      
+      // Si l'utilisateur existe, envoyer le code
+      if (data.success || data.user) {
+        // Sauvegarder l'email pour la suite
+        localStorage.setItem('pendingEmail', email);
+        
+        // Envoyer le code
+        const codeResponse = await fetch(API + "/auth/send-code", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        });
+        
+        const codeData = await codeResponse.json();
+        
+        if (!codeResponse.ok) {
+          throw new Error(codeData.message || "Erreur lors de l'envoi du code");
+        }
+        
+        // Afficher le champ de code
+        codeGroup.style.display = 'block';
+        btn.querySelector("span").textContent = "Vérifier";
+        clearCodeInputs();
+        codeInputs[0].focus();
+        toast("Code envoyé à votre email");
+      }
+    } catch (error) {
+      errEl.textContent = error.message;
+      errEl.classList.remove("hidden");
+    }
+  }
+  
+  btn.disabled = false;
+  if (codeGroup.style.display === 'none') {
+    btn.querySelector("span").textContent = "Se connecter";
+  }
 });
+
+// Gérer la saisie des champs de code
+document.querySelectorAll('.code-input').forEach((input, index) => {
+  input.addEventListener('input', function(e) {
+    const value = e.target.value;
+    
+    // N'accepter que les chiffres
+    if (!/^\d$/.test(value)) {
+      e.target.value = '';
+      return;
+    }
+    
+    // Passer au champ suivant
+    if (value && index < 5) {
+      document.getElementById(`code-${index + 2}`).focus();
+    }
+  });
+  
+  input.addEventListener('keydown', function(e) {
+    // Gérer la touche Retour arrière
+    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+      document.getElementById(`code-${index}`).focus();
+      document.getElementById(`code-${index}`).value = '';
+    }
+  });
+  
+  input.addEventListener('paste', function(e) {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+    const digits = pastedData.replace(/\D/g, '').slice(0, 6);
+    
+    digits.split('').forEach((digit, i) => {
+      if (i < 6) {
+        document.getElementById(`code-${i + 1}`).value = digit;
+      }
+    });
+    
+    // Focus sur le dernier champ rempli
+    const lastIndex = Math.min(digits.length, 6);
+    if (lastIndex > 0) {
+      document.getElementById(`code-${lastIndex}`).focus();
+    }
+  });
+});
+
+// Bouton renvoyer le code
+$("resend-code-btn")?.addEventListener("click", async function() {
+  const email = $("login-email").value;
+  
+  if (!email) {
+    toast("Veuillez d'abord entrer votre email");
+    return;
+  }
+  
+  try {
+    const response = await fetch(API + "/auth/send-code", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      toast("Nouveau code envoyé");
+      clearCodeInputs();
+      document.getElementById('code-1').focus();
+    } else {
+      toast(data.message || "Erreur lors de l'envoi");
+    }
+  } catch (error) {
+    toast("Erreur de connexion");
+  }
+});
+
+function clearCodeInputs() {
+  document.querySelectorAll('.code-input').forEach(input => {
+    input.value = '';
+  });
+}
 
 $("register-form").addEventListener("submit", (e) => {
   e.preventDefault();
@@ -145,6 +328,9 @@ $("register-form").addEventListener("submit", (e) => {
 
 // ── App launch ───────────────────────────────────────
 async function launchApp() {
+  // Utiliser le token stocké (peut venir de la page de code)
+  token = localStorage.getItem("token") || localStorage.getItem("reserv_token");
+  
   if (!token) {
     showAuth();
     return;
@@ -154,6 +340,7 @@ async function launchApp() {
       const d = await api("/auth/me");
       user = d.user || d.data;
     } catch {
+      localStorage.removeItem("token");
       localStorage.removeItem("reserv_token");
       token = null;
       showAuth();

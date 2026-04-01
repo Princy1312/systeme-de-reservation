@@ -18,6 +18,8 @@ router.put(
 router.post("/verify-2fa", authController.verify2FA);
 router.post("/setup-2fa", protect, authController.setup2FA);
 router.post("/enable-2fa", protect, authController.enable2FA);
+router.post("/send-code", authController.sendCode);
+router.post("/verify-code", authController.verifyCode);
 router.delete("/me", protect, authController.deleteMe);
 
 module.exports = router;
