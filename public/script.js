@@ -24,6 +24,7 @@ const STATUS = {
   confirmed: "Confirmée",
   pending: "En attente",
   cancelled: "Annulée",
+  rejected: "Rejetée",
 };
 
 // ── API ──────────────────────────────────────────────
@@ -549,8 +550,8 @@ function resCard(r, i) {
   const ok = r.available !== false;
   
   // Déterminer le statut de disponibilité
-  let availabilityText = '🟢 Disponible';
-  let availabilityClass = 'available';
+  let availabilityText = ok ? '🟢 Disponible' : '🔴 Indisponible';
+  let availabilityClass = ok ? 'available' : 'unavailable';
   
   if (r.availabilityType === 'stock' && r.currentStock !== null) {
     if (r.currentStock <= 0) {
@@ -755,7 +756,7 @@ async function loadMyReservations() {
               STATUS[r.status] || r.status
             }</span></td>
             <td>${
-              r.status !== "cancelled"
+              r.status !== "cancelled" && r.status !== "rejected"
                 ? `<button class="action-btn danger" data-index="${i}" title="Annuler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></button>`
                 : '<span style="color:var(--gray-600)">—</span>'
             }</td>

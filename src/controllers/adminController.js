@@ -407,13 +407,13 @@ exports.confirmReservation = async (req, res, next) => {
 
 /**
  * PUT /api/admin/reservations/:id/cancel
- * Annuler une réservation
+ * Rejeter une réservation
  */
 exports.cancelReservation = async (req, res, next) => {
   try {
     const reservation = await Reservation.findByIdAndUpdate(
       req.params.id,
-      { status: "cancelled" },
+      { status: "rejected" },
       { new: true, runValidators: true }
     ).populate("user", "name username email");
 

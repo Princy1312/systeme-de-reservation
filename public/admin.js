@@ -53,6 +53,7 @@ const STATUS = {
   confirmed: "Confirmée",
   pending: "En attente",
   cancelled: "Annulée",
+  rejected: "Rejetée",
 };
 
 // ── API Helpers ───────────────────────────────────────
@@ -189,25 +190,27 @@ function renderReservations() {
     <table class="admin-table">
       <thead>
         <tr>
-          <th>Utilisateur</th><th>Ressource</th><th>Date</th><th>Durée</th><th>Statut</th><th>Actions</th>
+          <th>TITRE</th><th>UTILISATEUR</th><th>RESSOURCE</th><th>DATE</th><th>HORAIRE</th><th>STATUT</th><th>ACTIONS</th>
         </tr>
       </thead>
       <tbody>
         ${currentReservations
           .map((res) => {
-            const startDate = new Date(res.startTime);
-            const endDate = new Date(res.endTime);
-            const duration = Math.round(
-              (endDate - startDate) / (1000 * 60 * 60)
-            );
+            const date = new Date(res.startTime);
+            const formattedDate = date.toLocaleDateString('fr-FR');
             return `
               <tr>
+                <td style="font-weight:500;color:var(--white)">${esc(
+                  res.title || "—"
+                )}</td>
                 <td>${esc(
                   res.user?.name || res.user?.username || "Utilisateur"
                 )}</td>
                 <td>${esc(res.resource?.name || "Ressource")}</td>
-                <td>${fmtDate(res.startTime)}</td>
-                <td>${duration}h</td>
+                <td style="font-family:var(--font-mono)">${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}</td>
+                <td style="font-family:var(--font-mono)">${res.startTime}–${
+              res.endTime
+            }</td>
                 <td><span class="status-badge ${res.status}">${
               STATUS[res.status] || res.status
             }</span></td>
@@ -223,8 +226,8 @@ function renderReservations() {
                       : ""
                   }
                   ${
-                    res.status !== "cancelled"
-                      ? `<button class="btn-cancel" data-id="${res._id}" title="Annuler">
+                    res.status !== "cancelled" && res.status !== "rejected"
+                      ? `<button class="btn-cancel" data-id="${res._id}" title="Rejeter">
                     <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="width: 16px; height: 16px;">
                       <line x1="18" y1="6" x2="6" y2="18"/>
                       <line x1="6" y1="6" x2="18" y2="18"/>
@@ -232,7 +235,7 @@ function renderReservations() {
                   </button>`
                       : ""
                   }
-                  ${res.status === "cancelled" ? `<button class="btn-delete" data-id="${res._id}" title="Supprimer">
+                  ${(res.status === "cancelled" || res.status === "rejected") ? `<button class="btn-delete" data-id="${res._id}" title="Supprimer">
                     <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="width: 16px; height: 16px;">
                       <polyline points="3 6 5 6 21 6"/>
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -299,7 +302,7 @@ async function confirmReservation(id) {
 async function cancelReservation(id) {
   try {
     await put(`/admin/reservations/${id}/cancel`);
-    toast("Réservation annulée");
+    toast("Réservation rejetée");
     loadReservations();
   } catch (e) {
     toast(e.message, true);
@@ -364,7 +367,7 @@ function renderUsers() {
     <table class="admin-table">
       <thead>
         <tr>
-          <th>Nom</th><th>Email</th><th>Rôle</th><th>2FA</th><th>Actions</th>
+          <th>NOM</th><th>EMAIL</th><th>RÔLE</th><th>STATUT</th><th>ACTIONS</th>
         </tr>
       </thead>
       <tbody>
@@ -372,14 +375,14 @@ function renderUsers() {
           .map(
             (u) => `
             <tr>
-              <td>${esc(u.username || u.name || "")}</td>
+              <td style="font-weight:500;color:var(--white)">${esc(u.username || u.name || "")}</td>
               <td>${esc(u.email)}</td>
               <td><span class="role-badge ${u.role}">${
-              u.role === "admin" ? "Admin" : "User"
+              u.role === "admin" ? "ADMINISTRATEUR" : "UTILISATEUR"
             }</span></td>
               <td><span class="status-badge ${
                 u.twoFactorEnabled ? "enabled" : "disabled"
-              }">${u.twoFactorEnabled ? "Actif" : "Inactif"}</span></td>
+              }">${u.twoFactorEnabled ? "ACTIVÉ" : "DÉSACTIVÉ"}</span></td>
               <td class="actions">
                 <button class="btn-view" data-id="${u._id}" title="Voir">
                   <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 16px; height: 16px;">
@@ -543,7 +546,7 @@ function renderResources() {
     <table class="admin-table">
       <thead>
         <tr>
-          <th>Nom</th><th>Type</th><th>Capacité</th><th>Prix/heure</th><th>Dispo</th><th>Actions</th>
+          <th>NOM</th><th>TYPE</th><th>CAPACITÉ</th><th>PRIX/HEURE</th><th>STATUT</th><th>ACTIONS</th>
         </tr>
       </thead>
       <tbody>
@@ -551,13 +554,13 @@ function renderResources() {
           .map(
             (r) => `
             <tr>
-              <td>${esc(r.name)}</td>
+              <td style="font-weight:500;color:var(--white)">${esc(r.name)}</td>
               <td>${TYPES[r.type] || r.type}</td>
               <td>${r.capacity || "—"}</td>
               <td>${r.pricePerHour ? r.pricePerHour + "€" : "—"}</td>
               <td><span class="status-badge ${
                 r.available !== false ? "available" : "unavailable"
-              }">${r.available !== false ? "Dispo" : "Indispo"}</span></td>
+              }">${r.available !== false ? "DISPONIBLE" : "INDISPONIBLE"}</span></td>
               <td class="actions">
                 <button class="btn-edit" data-id="${r._id}" title="Modifier">
                   <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 16px; height: 16px;">
