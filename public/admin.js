@@ -187,66 +187,180 @@ function renderReservations() {
     return;
   }
   list.innerHTML = `
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>TITRE</th><th>UTILISATEUR</th><th>RESSOURCE</th><th>DATE</th><th>HORAIRE</th><th>STATUT</th><th>ACTIONS</th>
-        </tr>
-      </thead>
-      <tbody>
+    <div class="reservations-card" style="
+      background: var(--gray-800); 
+      border-radius: 8px; 
+      border: 1px solid var(--gray-700);
+      padding: 20px;
+    ">
+      <div class="reservations-header" style="
+        display: flex; 
+        align-items: center; 
+        gap: 12px; 
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--gray-700);
+      ">
+        <div style="
+          width: 48px; 
+          height: 48px; 
+          border-radius: 8px; 
+          background: var(--gray-700); 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          font-size: 24px;
+        ">📅</div>
+        <div>
+          <h3 style="
+            color: var(--white); 
+            font-size: 1.25rem; 
+            font-weight: 600; 
+            margin: 0;
+          ">Réservations</h3>
+          <p style="
+            color: var(--gray-400); 
+            font-size: 0.85rem; 
+            margin: 4px 0 0 0;
+          ">${currentReservations.length} réservation${currentReservations.length > 1 ? 's' : ''} trouvée${currentReservations.length > 1 ? 's' : ''}</p>
+        </div>
+      </div>
+      
+      <div class="reservations-list" style="display: flex; flex-direction: column; gap: 12px;">
         ${currentReservations
-          .map((res) => {
+          .map((res, index) => {
             const date = new Date(res.startTime);
-            const formattedDate = date.toLocaleDateString('fr-FR');
             return `
-              <tr>
-                <td style="font-weight:500;color:var(--white)">${esc(
-                  res.title || "—"
-                )}</td>
-                <td>${esc(
-                  res.user?.name || res.user?.username || "Utilisateur"
-                )}</td>
-                <td>${esc(res.resource?.name || "Ressource")}</td>
-                <td style="font-family:var(--font-mono)">${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}</td>
-                <td style="font-family:var(--font-mono)">${res.startTime}–${
-              res.endTime
-            }</td>
-                <td><span class="status-badge ${res.status}">${
-              STATUS[res.status] || res.status
-            }</span></td>
-                <td class="actions">
-                  ${
-                    res.status === "pending"
-                      ? `<button class="btn-confirm" data-id="${res._id}" title="Confirmer">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 16px; height: 16px;">
-                      <polyline points="20 6 9 17 4 17"/>
-                      <path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7"/>
-                    </svg>
-                  </button>`
-                      : ""
-                  }
-                  ${
-                    res.status !== "cancelled" && res.status !== "rejected"
-                      ? `<button class="btn-cancel" data-id="${res._id}" title="Rejeter">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="width: 16px; height: 16px;">
-                      <line x1="18" y1="6" x2="6" y2="18"/>
-                      <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                  </button>`
-                      : ""
-                  }
-                  ${(res.status === "cancelled" || res.status === "rejected") ? `<button class="btn-delete" data-id="${res._id}" title="Supprimer">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="width: 16px; height: 16px;">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    </svg>
-                  </button>` : ""}
-                </td>
-              </tr>`;
+            <div class="reservation-item" data-index="${index}" style="
+              display: flex; 
+              align-items: center; 
+              gap: 16px; 
+              padding: 12px;
+              background: ${index % 2 === 0 ? 'var(--gray-750)' : 'var(--gray-800)'};
+              border-radius: 6px;
+              border: 1px solid var(--gray-700);
+              transition: all 0.2s ease;
+            ">
+              <div class="reservation-number" style="
+                width: 32px; 
+                height: 32px; 
+                border-radius: 50%; 
+                background: var(--primary); 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                color: white; 
+                font-weight: 600; 
+                font-size: 0.85rem;
+                flex-shrink: 0;
+              ">${index + 1}</div>
+              
+              <div class="reservation-info" style="flex: 1; min-width: 0;">
+                <div class="reservation-title" style="
+                  font-weight: 600; 
+                  color: var(--white); 
+                  margin-bottom: 4px;
+                  font-size: 0.95rem;
+                ">${esc(res.title || "—")}</div>
+                <div class="reservation-details" style="
+                  display: flex; 
+                  gap: 16px; 
+                  flex-wrap: wrap;
+                  align-items: center;
+                ">
+                  <span style="color: var(--gray-400); font-size: 0.8rem;">
+                    👤 ${esc(res.user?.name || res.user?.username || "Utilisateur")}
+                  </span>
+                  <span style="color: var(--gray-400); font-size: 0.8rem;">
+                    🏢 ${esc(res.resource?.name || "Ressource")}
+                  </span>
+                  <span style="color: var(--gray-400); font-size: 0.8rem;">
+                    📆 ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}
+                  </span>
+                  <span style="color: var(--gray-400); font-size: 0.8rem;">
+                    ⏰ ${res.startTime}–${res.endTime}
+                  </span>
+                  <span class="status-badge ${res.status}" style="
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    font-size: 0.7rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    ${
+                      res.status === 'confirmed' 
+                        ? "background: rgba(34, 197, 94, 0.2); color: #22c55e;" 
+                        : res.status === 'pending'
+                        ? "background: rgba(251, 191, 36, 0.2); color: #fbbf24;"
+                        : "background: rgba(239, 68, 68, 0.2); color: #ef4444;"
+                    }
+                  ">${STATUS[res.status] || res.status}</span>
+                </div>
+              </div>
+              
+              <div class="reservation-actions" style="
+                display: flex; 
+                gap: 6px; 
+                flex-shrink: 0;
+              ">
+                ${
+                  res.status === "pending"
+                    ? `<button class="btn-confirm" data-id="${res._id}" title="Confirmer" style="
+                      padding: 6px; 
+                      background: var(--primary); 
+                      border: none; 
+                      border-radius: 4px; 
+                      color: white; 
+                      cursor: pointer; 
+                      transition: opacity 0.2s ease;
+                    ">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 14px; height: 14px;">
+                        <polyline points="20 6 9 17 4 17"/>
+                        <path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7"/>
+                      </svg>
+                    </button>`
+                    : ""
+                }
+                ${
+                  res.status !== "cancelled" && res.status !== "rejected"
+                    ? `<button class="btn-cancel" data-id="${res._id}" title="Rejeter" style="
+                      padding: 6px; 
+                      background: var(--danger); 
+                      border: none; 
+                      border-radius: 4px; 
+                      color: white; 
+                      cursor: pointer; 
+                      transition: opacity 0.2s ease;
+                    ">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 14px; height: 14px;">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>`
+                    : ""
+                }
+                ${
+                  (res.status === "cancelled" || res.status === "rejected") ? `<button class="btn-delete" data-id="${res._id}" title="Supprimer" style="
+                      padding: 6px; 
+                      background: var(--danger); 
+                      border: none; 
+                      border-radius: 4px; 
+                      color: white; 
+                      cursor: pointer; 
+                      transition: opacity 0.2s ease;
+                    " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 14px; height: 14px;">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>` : ""
+                }
+              </div>
+            </div>`;
           })
           .join("")}
-      </tbody>
-    </table>
+      </div>
+    </div>
   `;
 
   // Event listeners
@@ -258,6 +372,31 @@ function renderReservations() {
   });
   list.querySelectorAll(".btn-delete").forEach((btn) => {
     btn.addEventListener("click", () => deleteReservation(btn.dataset.id));
+  });
+  
+  // Add hover effects for reservation items
+  list.querySelectorAll(".reservation-item").forEach((item) => {
+    const index = parseInt(item.dataset.index);
+    const originalBg = index % 2 === 0 ? 'var(--gray-750)' : 'var(--gray-800)';
+    
+    item.addEventListener("mouseenter", () => {
+      item.style.background = 'var(--gray-700)';
+    });
+    
+    item.addEventListener("mouseleave", () => {
+      item.style.background = originalBg;
+    });
+  });
+  
+  // Add hover effects for buttons
+  list.querySelectorAll(".btn-confirm, .btn-cancel, .btn-delete").forEach((btn) => {
+    btn.addEventListener("mouseenter", () => {
+      btn.style.opacity = '0.8';
+    });
+    
+    btn.addEventListener("mouseleave", () => {
+      btn.style.opacity = '1';
+    });
   });
 }
 
@@ -364,44 +503,100 @@ function renderUsers() {
     return;
   }
   list.innerHTML = `
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>NOM</th><th>EMAIL</th><th>RÔLE</th><th>STATUT</th><th>ACTIONS</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${currentUsers
-          .map(
-            (u) => `
-            <tr>
-              <td style="font-weight:500;color:var(--white)">${esc(u.username || u.name || "")}</td>
-              <td>${esc(u.email)}</td>
-              <td><span class="role-badge ${u.role}">${
-              u.role === "admin" ? "ADMINISTRATEUR" : "UTILISATEUR"
-            }</span></td>
-              <td><span class="status-badge ${
-                u.twoFactorEnabled ? "enabled" : "disabled"
-              }">${u.twoFactorEnabled ? "ACTIVÉ" : "DÉSACTIVÉ"}</span></td>
-              <td class="actions">
-                <button class="btn-view" data-id="${u._id}" title="Voir">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 16px; height: 16px;">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11 8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                </button>
-                <button class="btn-delete" data-id="${u._id}" title="Supprimer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="width: 16px; height: 16px;">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                  </svg>
-                </button>
-              </td>
-            </tr>`
-          )
-          .join("")}
-      </tbody>
-    </table>
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      ${currentUsers
+        .map(
+          (u) => `
+        <div class="user-card" style="
+          display: flex; 
+          align-items: center; 
+          gap: 16px; 
+          padding: 16px; 
+          background: var(--gray-800); 
+          border-radius: 8px; 
+          border: 1px solid var(--gray-700);
+          transition: all 0.2s ease;
+        ">
+          <div class="user-icon" style="
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            background: var(--primary); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: 600; 
+            font-size: 18px;
+            flex-shrink: 0;
+          ">${(u.username || u.name || "U")[0].toUpperCase()}</div>
+          <div class="user-info" style="flex: 1; min-width: 0;">
+            <div class="user-name" style="
+              font-weight: 600; 
+              color: var(--white); 
+              margin-bottom: 4px;
+              font-size: 1rem;
+            ">${esc(u.username || u.name || "")}</div>
+            <div class="user-details" style="
+              display: flex; 
+              gap: 16px; 
+              flex-wrap: wrap;
+              align-items: center;
+            ">
+              <span style="color: var(--gray-400); font-size: 0.85rem;">📧 ${esc(u.email)}</span>
+              <span class="role-badge ${u.role}" style="
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                ${
+                  u.role === "admin"
+                    ? "background: rgba(59, 130, 246, 0.2); color: #3b82f6;"
+                    : "background: rgba(107, 114, 128, 0.2); color: #6b7280;"
+                }
+              ">${u.role === "admin" ? "Administrateur" : "Utilisateur"}</span>
+            </div>
+          </div>
+          <div class="user-actions" style="
+            display: flex; 
+            gap: 8px; 
+            flex-shrink: 0;
+          ">
+            <button class="btn-view" data-id="${u._id}" title="Voir" style="
+              padding: 8px; 
+              background: var(--primary); 
+              border: none; 
+              border-radius: 6px; 
+              color: white; 
+              cursor: pointer; 
+              transition: opacity 0.2s ease;
+            ">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 16px; height: 16px;">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11 8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+            <button class="btn-delete" data-id="${u._id}" title="Supprimer" style="
+              padding: 8px; 
+              background: var(--danger); 
+              border: none; 
+              border-radius: 6px; 
+              color: white; 
+              cursor: pointer; 
+              transition: opacity 0.2s ease;
+            ">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 16px; height: 16px;">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+              </svg>
+            </button>
+          </div>
+        </div>`
+        )
+        .join("")}
+    </div>
   `;
 
   // Event listeners
@@ -410,6 +605,28 @@ function renderUsers() {
   });
   list.querySelectorAll(".btn-delete").forEach((btn) => {
     btn.addEventListener("click", () => deleteUser(btn.dataset.id));
+  });
+  
+  // Add hover effects for user cards
+  list.querySelectorAll(".user-card").forEach((card) => {
+    card.addEventListener("mouseenter", () => {
+      card.style.background = 'var(--gray-750)';
+    });
+    
+    card.addEventListener("mouseleave", () => {
+      card.style.background = 'var(--gray-800)';
+    });
+  });
+  
+  // Add hover effects for buttons
+  list.querySelectorAll(".btn-view, .btn-delete").forEach((btn) => {
+    btn.addEventListener("mouseenter", () => {
+      btn.style.opacity = '0.8';
+    });
+    
+    btn.addEventListener("mouseleave", () => {
+      btn.style.opacity = '1';
+    });
   });
 }
 
@@ -463,12 +680,6 @@ async function viewUser(id) {
             <span class="role-badge ${u.role}">${
       u.role === "admin" ? "Administrateur" : "Utilisateur"
     }</span>
-          </div>
-          <div class="field-row">
-            <label>2FA:</label>
-            <span class="status-badge ${
-              u.twoFactorEnabled ? "enabled" : "disabled"
-            }">${u.twoFactorEnabled ? "Activé" : "Désactivé"}</span>
           </div>
           <div class="field-row">
             <label>Inscrit le:</label>
@@ -543,43 +754,102 @@ function renderResources() {
     return;
   }
   list.innerHTML = `
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>NOM</th><th>TYPE</th><th>CAPACITÉ</th><th>PRIX/HEURE</th><th>STATUT</th><th>ACTIONS</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${currentResources
-          .map(
-            (r) => `
-            <tr>
-              <td style="font-weight:500;color:var(--white)">${esc(r.name)}</td>
-              <td>${TYPES[r.type] || r.type}</td>
-              <td>${r.capacity || "—"}</td>
-              <td>${r.pricePerHour ? r.pricePerHour + "€" : "—"}</td>
-              <td><span class="status-badge ${
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      ${currentResources
+        .map(
+          (r) => `
+        <div class="resource-card" style="
+          display: flex; 
+          align-items: center; 
+          gap: 16px; 
+          padding: 16px; 
+          background: var(--gray-800); 
+          border-radius: 8px; 
+          border: 1px solid var(--gray-700);
+          transition: all 0.2s ease;
+        ">
+          <div class="resource-icon" style="
+            width: 48px; 
+            height: 48px; 
+            border-radius: 8px; 
+            background: var(--gray-700); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 20px;
+            flex-shrink: 0;
+          ">${TYPE_ICONS[r.type] || "📦"}</div>
+          <div class="resource-info" style="flex: 1; min-width: 0;">
+            <div class="resource-name" style="
+              font-weight: 600; 
+              color: var(--white); 
+              margin-bottom: 4px;
+              font-size: 1rem;
+            ">${esc(r.name)}</div>
+            <div class="resource-details" style="
+              display: flex; 
+              gap: 16px; 
+              flex-wrap: wrap;
+              align-items: center;
+            ">
+              <span style="color: var(--gray-400); font-size: 0.85rem;">${TYPES[r.type] || r.type}</span>
+              <span style="color: var(--gray-400); font-size: 0.85rem;">Capacité: ${r.capacity || "—"}</span>
+              <span style="color: var(--gray-400); font-size: 0.85rem;">${r.pricePerHour ? r.pricePerHour + "€/h" : "Gratuit"}</span>
+              <span class="status-badge ${
                 r.available !== false ? "available" : "unavailable"
-              }">${r.available !== false ? "DISPONIBLE" : "INDISPONIBLE"}</span></td>
-              <td class="actions">
-                <button class="btn-edit" data-id="${r._id}" title="Modifier">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 16px; height: 16px;">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                </button>
-                <button class="btn-delete" data-id="${r._id}" title="Supprimer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="width: 16px; height: 16px;">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                  </svg>
-                </button>
-              </td>
-            </tr>`
-          )
-          .join("")}
-      </tbody>
-    </table>
+              }" style="
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                ${
+                  r.available !== false 
+                    ? "background: rgba(34, 197, 94, 0.2); color: #22c55e;" 
+                    : "background: rgba(239, 68, 68, 0.2); color: #ef4444;"
+                }
+              ">${r.available !== false ? "Disponible" : "Indisponible"}</span>
+            </div>
+          </div>
+          <div class="resource-actions" style="
+            display: flex; 
+            gap: 8px; 
+            flex-shrink: 0;
+          ">
+            <button class="btn-edit" data-id="${r._id}" title="Modifier" style="
+              padding: 8px; 
+              background: var(--primary); 
+              border: none; 
+              border-radius: 6px; 
+              color: white; 
+              cursor: pointer; 
+              transition: opacity 0.2s ease;
+            ">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 16px; height: 16px;">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="btn-delete" data-id="${r._id}" title="Supprimer" style="
+              padding: 8px; 
+              background: var(--danger); 
+              border: none; 
+              border-radius: 6px; 
+              color: white; 
+              cursor: pointer; 
+              transition: opacity 0.2s ease;
+            ">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 16px; height: 16px;">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+              </svg>
+            </button>
+          </div>
+        </div>`
+        )
+        .join("")}
+    </div>
   `;
 
   list.querySelectorAll(".btn-edit").forEach((btn) => {
@@ -587,6 +857,28 @@ function renderResources() {
   });
   list.querySelectorAll(".btn-delete").forEach((btn) => {
     btn.addEventListener("click", () => deleteResource(btn.dataset.id));
+  });
+  
+  // Add hover effects for resource cards
+  list.querySelectorAll(".resource-card").forEach((card) => {
+    card.addEventListener("mouseenter", () => {
+      card.style.background = 'var(--gray-750)';
+    });
+    
+    card.addEventListener("mouseleave", () => {
+      card.style.background = 'var(--gray-800)';
+    });
+  });
+  
+  // Add hover effects for buttons
+  list.querySelectorAll(".btn-edit, .btn-delete").forEach((btn) => {
+    btn.addEventListener("mouseenter", () => {
+      btn.style.opacity = '0.8';
+    });
+    
+    btn.addEventListener("mouseleave", () => {
+      btn.style.opacity = '1';
+    });
   });
 }
 
@@ -759,6 +1051,24 @@ $("resource-avail-filter")?.addEventListener("change", (e) => {
   loadResources();
 });
 
+// ── DATE ───────────────────────────────────────────
+function updateHeaderDate() {
+  try {
+    const now = new Date();
+    if ($("header-date")) {
+      $("header-date").innerHTML = `${now.toLocaleDateString("fr-FR", {
+        weekday: "long",
+      })}<br>${now.toLocaleDateString("fr-FR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })}`;
+    }
+  } catch (e) {
+    console.error("Erreur mise à jour date:", e);
+  }
+}
+
 // ── DASHBOARD ─────────────────────────────────────────
 async function loadDashboard() {
   try {
@@ -770,64 +1080,196 @@ async function loadDashboard() {
     $("stat-available").textContent = data.stats.availableResources || 0;
     $("stat-reservations").textContent = data.stats.totalReservations || 0;
 
+    // Appliquer les styles horizontaux pour le dashboard
+    const dashboardSections = document.querySelector(".dashboard-sections");
+    if (dashboardSections) {
+      dashboardSections.style.display = "flex";
+      dashboardSections.style.gap = "24px";
+      dashboardSections.style.alignItems = "stretch";
+      dashboardSections.style.marginBottom = "24px";
+    }
+
+    const dashSections = document.querySelectorAll(".dashboard-sections .dash-section");
+    dashSections.forEach(section => {
+      section.style.flex = "1";
+      section.style.minWidth = "0"; // Permet au contenu de ne pas déborder
+      section.style.display = "flex";
+      section.style.flexDirection = "column";
+    });
+
+    // Assurer que les headers sont bien alignés
+    const sectionHeaders = document.querySelectorAll(".dashboard-sections .section-header");
+    sectionHeaders.forEach(header => {
+      header.style.display = "flex";
+      header.style.justifyContent = "space-between";
+      header.style.alignItems = "center";
+      header.style.marginBottom = "16px";
+    });
+
     const recentUsers = data.recentUsers || [];
     $("recent-users").innerHTML =
       recentUsers.length === 0
         ? empty("Aucun utilisateur")
-        : recentUsers
-            .map(
-              (u) => `
-          <div class="recent-item">
-            <div class="recent-item-icon">${(u.username ||
-              "U")[0].toUpperCase()}</div>
-            <div class="recent-item-info">
-              <div class="recent-item-name">${esc(u.username)}</div>
-              <div class="recent-item-meta">${esc(u.email)}</div>
-            </div>
-          </div>`
-            )
-            .join("");
+        : `
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            ${recentUsers
+              .map(
+                (u) => `
+              <div class="recent-item" style="
+                display: flex; 
+                align-items: center; 
+                gap: 12px; 
+                padding: 12px; 
+                background: var(--gray-800); 
+                border-radius: 8px; 
+                border: 1px solid var(--gray-700);
+                transition: all 0.2s ease;
+              ">
+                <div class="recent-item-icon" style="
+                  width: 40px; 
+                  height: 40px; 
+                  border-radius: 50%; 
+                  background: var(--primary); 
+                  display: flex; 
+                  align-items: center; 
+                  justify-content: center; 
+                  color: white; 
+                  font-weight: 600; 
+                  font-size: 14px;
+                  flex-shrink: 0;
+                ">${(u.username || "U")[0].toUpperCase()}</div>
+                <div class="recent-item-info" style="flex: 1; min-width: 0;">
+                  <div class="recent-item-name" style="
+                    font-weight: 500; 
+                    color: var(--white); 
+                    margin-bottom: 2px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  ">${esc(u.username)}</div>
+                  <div class="recent-item-meta" style="
+                    font-size: 0.8rem; 
+                    color: var(--gray-400);
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  ">${esc(u.email)}</div>
+                </div>
+              </div>`
+              )
+              .join("")}
+          </div>`;
 
     const recentResources = data.recentResources || [];
     $("recent-resources").innerHTML =
       recentResources.length === 0
         ? empty("Aucune ressource")
-        : recentResources
-            .map(
-              (r) => `
-          <div class="recent-item">
-            <div class="recent-item-icon">${TYPE_ICONS[r.type] || "📦"}</div>
-            <div class="recent-item-info">
-              <div class="recent-item-name">${esc(r.name)}</div>
-              <div class="recent-item-meta">${TYPES[r.type] || r.type}</div>
-            </div>
-            <span class="status-badge ${
-              r.available !== false ? "available" : "unavailable"
-            }">${r.available !== false ? "Dispo" : "Indispo"}</span>
-          </div>`
-            )
-            .join("");
+        : `
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            ${recentResources
+              .map(
+                (r) => `
+              <div class="recent-item" style="
+                display: flex; 
+                align-items: center; 
+                gap: 12px; 
+                padding: 12px; 
+                background: var(--gray-800); 
+                border-radius: 8px; 
+                border: 1px solid var(--gray-700);
+                transition: all 0.2s ease;
+              ">
+                <div class="recent-item-icon" style="
+                  width: 40px; 
+                  height: 40px; 
+                  border-radius: 8px; 
+                  background: var(--gray-700); 
+                  display: flex; 
+                  align-items: center; 
+                  justify-content: center; 
+                  font-size: 18px;
+                  flex-shrink: 0;
+                ">${TYPE_ICONS[r.type] || "📦"}</div>
+                <div class="recent-item-info" style="flex: 1; min-width: 0;">
+                  <div class="recent-item-name" style="
+                    font-weight: 500; 
+                    color: var(--white); 
+                    margin-bottom: 2px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  ">${esc(r.name)}</div>
+                  <div class="recent-item-meta" style="
+                    font-size: 0.8rem; 
+                    color: var(--gray-400);
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  ">${TYPES[r.type] || r.type}</div>
+                </div>
+                <span class="status-badge ${
+                  r.available !== false ? "available" : "unavailable"
+                }" style="
+                  flex-shrink: 0;
+                  padding: 4px 8px;
+                  border-radius: 4px;
+                  font-size: 0.75rem;
+                  font-weight: 600;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  ${
+                    r.available !== false 
+                      ? "background: rgba(34, 197, 94, 0.2); color: #22c55e;" 
+                      : "background: rgba(239, 68, 68, 0.2); color: #ef4444;"
+                  }
+                ">${r.available !== false ? "Dispo" : "Indispo"}</span>
+              </div>`
+              )
+              .join("")}
+          </div>`;
 
     const byType = data.stats.resourcesByType || [];
+    const typeStatsContainer = $("resources-by-type");
+    if (typeStatsContainer) {
+      typeStatsContainer.style.display = "flex";
+      typeStatsContainer.style.gap = "16px";
+      typeStatsContainer.style.flexWrap = "wrap";
+      typeStatsContainer.style.justifyContent = "flex-start";
+      typeStatsContainer.style.alignItems = "center";
+    }
+    
     $("resources-by-type").innerHTML = byType
       .map(
         (t) => `
-        <div class="type-stat-item">
-          <div class="type-stat-icon">${TYPE_ICONS[t._id] || "📦"}</div>
-          <div class="type-stat-label">${TYPES[t._id] || t._id}</div>
-          <div class="type-stat-value">${t.count}</div>
+        <div class="type-stat-item" style="
+          display: flex; 
+          align-items: center; 
+          gap: 8px; 
+          padding: 8px 12px; 
+          background: var(--gray-800); 
+          border-radius: 6px; 
+          border: 1px solid var(--gray-700);
+        ">
+          <div class="type-stat-icon" style="font-size: 16px;">${TYPE_ICONS[t._id] || "📦"}</div>
+          <div class="type-stat-label" style="font-size: 0.85rem; color: var(--gray-300);">${TYPES[t._id] || t._id}</div>
+          <div class="type-stat-value" style="font-weight: 600; color: var(--white); background: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${t.count}</div>
         </div>`
       )
       .join("");
 
-    const now = new Date();
-    $("header-date").innerHTML = `${now.toLocaleDateString("fr-FR", {
-      weekday: "long",
-    })}<br>${now.toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })}`;
+    // Add hover effects for recent items
+    document.querySelectorAll(".recent-item").forEach((item) => {
+      item.addEventListener("mouseenter", () => {
+        item.style.background = 'var(--gray-750)';
+      });
+      
+      item.addEventListener("mouseleave", () => {
+        item.style.background = 'var(--gray-800)';
+      });
+    });
+
+    // Mettre à jour la date
+    updateHeaderDate();
   } catch (e) {
     console.error(e);
     toast(e.message, true);
@@ -890,10 +1332,19 @@ function showAuth() {
 function showApp() {
   $("auth-screen")?.classList.add("hidden");
   $("app-screen")?.classList.remove("hidden");
+  console.log("showApp called, user data:", user); // Debug
   updateSidebarUser();
 }
 
 function updateSidebarUser() {
+  console.log("updateSidebarUser called, user data:", user); // Debug
+  
+  // Vérifier si user existe
+  if (!user) {
+    console.log("User data is null, skipping update"); // Debug
+    return;
+  }
+  
   const name = user.username || user.name || "A";
   const avatar = user.avatar ? `/uploads/${user.avatar}` : null;
   const el = $("sidebar-avatar");
@@ -906,9 +1357,9 @@ function updateSidebarUser() {
     $("sidebar-username").textContent = name;
   }
   if ($("sidebar-role")) {
-    $("sidebar-role").textContent =
-      user.role === "admin" ? "administrateur" : "membre";
+    $("sidebar-role").textContent = user.role === "admin" ? "administrateur" : "membre";
   }
+  console.log("Sidebar updated with name:", name); // Debug
 }
 
 // Login form
@@ -940,6 +1391,7 @@ $("login-form")?.addEventListener("submit", async (e) => {
     }
     showApp();
     loadDashboard();
+    updateHeaderDate(); // Mettre à jour la date au chargement
     startNotificationPolling();
   } catch (e) {
     console.error("Login error:", e); // Debug
@@ -1494,6 +1946,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const isAuthenticated = await checkAuth();
   if (isAuthenticated) {
     loadDashboard();
+    updateHeaderDate(); // Mettre à jour la date au chargement
     startNotificationPolling();
   }
 });

@@ -374,8 +374,23 @@ async function launchApp() {
 }
 
 function showAuth() {
-  $("auth-screen").classList.remove("hidden");
-  $("app-screen").classList.add("hidden");
+  console.log("showAuth called - hiding app, showing auth"); // Debug
+  const authScreen = $("auth-screen");
+  const appScreen = $("app-screen");
+  
+  if (authScreen) {
+    authScreen.classList.remove("hidden");
+    console.log("auth-screen unhidden"); // Debug
+  }
+  if (appScreen) {
+    appScreen.classList.add("hidden");
+    console.log("app-screen hidden"); // Debug
+  }
+  
+  // Cacher tous les modals au cas où
+  document.querySelectorAll(".modal-overlay").forEach(modal => {
+    modal.classList.add("hidden");
+  });
 }
 
 function updateSidebarUser() {
@@ -1539,4 +1554,30 @@ function addAdminLink() {
 
 // ── Init ─────────────────────────────────────────────
 // Toujours afficher la page de connexion au chargement
-showAuth();
+document.addEventListener("DOMContentLoaded", () => {
+  // Vérifier s'il y a déjà un token stocké
+  const token = localStorage.getItem("reserv_token");
+  if (token) {
+    // S'il y a un token, vérifier si l'utilisateur est admin ou utilisateur normal
+    checkAuthAndRedirect();
+  } else {
+    // Sinon, afficher la page de connexion
+    showAuth();
+  }
+});
+
+async function checkAuthAndRedirect() {
+  try {
+    const response = await api("/auth/me");
+    if (response.success && response.data.role === "admin") {
+      // Rediriger vers la page admin
+      window.location.href = "/admin.html";
+    } else {
+      // Afficher l'interface utilisateur normale
+      showApp();
+    }
+  } catch (error) {
+    // Token invalide, afficher la page de connexion
+    showAuth();
+  }
+}

@@ -57,6 +57,10 @@ const reservationSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    notified: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

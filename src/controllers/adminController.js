@@ -465,21 +465,27 @@ exports.deleteReservation = async (req, res, next) => {
  */
 exports.getNotifications = async (req, res, next) => {
   try {
-    // Récupérer toutes les réservations récentes (pas seulement pending)
-    const recentReservations = await Reservation.find({})
-      .populate("user", "name username")
-      .populate("resource", "name")
-      .sort("-createdAt")
+    // Récupérer uniquement les réservations créées par des utilisateurs qui n'ont pas encore été notifiées
+    // et créées dans les dernières 24 heures
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    
+    const newReservations = await Reservation.find({
+      notified: false,
+      createdAt: { $gte: twentyFourHoursAgo },
+      // S'assurer que ce sont bien des réservations d'utilisateurs (pas d'admin)
+      'user.role': { $ne: 'admin' }
+    })
+      .populate('user', 'name username email role')
+      .populate('resource', 'name')
+      .sort('-createdAt')
       .limit(20);
 
-    const notifications = recentReservations.map(reservation => ({
+    const notifications = newReservations.map(reservation => ({
       _id: reservation._id,
-      title: reservation.status === "pending" ? "Nouvelle réservation" : 
-             reservation.status === "confirmed" ? "Réservation confirmée" : 
-             reservation.status === "cancelled" ? "Réservation annulée" : "Réservation",
-      message: `${reservation.user?.name || reservation.user?.username} a ${reservation.status === "cancelled" ? "annulé" : "réservé"} ${reservation.resource?.name}`,
+      title: "Nouvelle réservation utilisateur",
+      message: `${reservation.user?.name || reservation.user?.username} a réservé "${reservation.resource?.name}" pour le ${new Date(reservation.date).toLocaleDateString('fr-FR')} de ${reservation.startTime} à ${reservation.endTime}`,
       type: "reservation",
-      read: false, // Toutes les notifications sont non lues par défaut
+      read: false,
       createdAt: reservation.createdAt,
     }));
 
@@ -563,7 +569,7 @@ exports.updateProfile = async (req, res, next) => {
  */
 exports.clearNotifications = async (req, res, next) => {
   try {
-    // Simuler l'effacement des notifications en les marquant comme lues
+    // Marquer toutes les réservations comme notifiées pour ne plus les afficher
     await Reservation.updateMany(
       {},
       { $set: { notified: true } }
@@ -584,11 +590,21 @@ exports.clearNotifications = async (req, res, next) => {
  */
 exports.markNotificationRead = async (req, res, next) => {
   try {
-    // Simuler le marquage comme lu
-    await Reservation.findByIdAndUpdate(
-      req.params.id,
-      { $set: { notified: true } }
+    const { id } = req.params;
+    
+    // Marquer la réservation comme notifiée pour ne plus l'afficher dans les notifications
+    const reservation = await Reservation.findByIdAndUpdate(
+      id,
+      { $set: { notified: true } },
+      { new: true }
     );
+
+    if (!reservation) {
+      return res.status(404).json({
+        success: false,
+        message: "Réservation introuvable.",
+      });
+    }
 
     res.json({
       success: true,
